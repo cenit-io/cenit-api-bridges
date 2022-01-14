@@ -1,0 +1,12 @@
+.flex.full-v-width.full-v-height.justify-content-center.align-items-center
+  .flex.column.align-items-center.devise.box
+    %a.logo{href: '/'}
+
+    .separator
+
+    .flex.column
+      - @uris.each do |uri|
+        %a.list-item{href: uri.to_s}
+          =uri.to_s.split('?').first
+
+    .separator
