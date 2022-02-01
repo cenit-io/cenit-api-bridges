@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "cenit/api_gateways"
+require "cenit/api_bridges"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

@@ -1,5 +1,5 @@
 module Cenit
-  module ApiGateways
+  module ApiBridges
 
     controller do
 

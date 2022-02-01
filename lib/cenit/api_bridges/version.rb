@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Cenit
-  module ApiGateways
+  module ApiBridges
     MAJOR = 0
     MINOR = 1
     TINY = 0

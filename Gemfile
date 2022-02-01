@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in cenit-api_gateways.gemspec
+# Specify your gem's dependencies in cenit-api_bridges.gemspec
 gemspec
 
 gem "rake", "~> 13.0"
