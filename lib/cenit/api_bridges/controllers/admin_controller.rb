@@ -10,9 +10,15 @@ module Cenit
 
       before_action :find_authorize_account, except: %i[cors_check]
       before_action :find_data_type, except: %i[cors_check]
-      before_action :find_record, only: %i[handle_admin_model_id]
+      before_action :find_record, only: %i[show update]
 
-      get '/admin/:model' do
+      route :get, '/admin/:model', to: :index
+      route :get, '/admin/:model/:id', to: :show
+      route :post, '/admin/:model', to: :create
+      route :post, '/admin/:model/:id', to: :update
+      route :delete, '/admin/:model', to: :destroy
+
+      def index
         criteria = {}
 
         respond_with_records(@dt, criteria, params[:model])
@@ -20,13 +26,30 @@ module Cenit
         respond_with_exception(e)
       end
 
-      get '/admin/:model/:id' do
+      def show
         respond_with_record(@record, params[:model])
       rescue StandardError => e
         respond_with_exception(e)
       end
 
-      delete '/admin/:model' do
+      def create
+        data, options = parse_request_data(params[:model], :create)
+        record = @dt.create_from_json!(data, options)
+
+        respond_with_record(record, params[:model])
+      rescue StandardError => e
+        respond_with_exception(e)
+      end
+
+      def update
+        data, options = parse_request_data(params[:model], :update)
+        record = @dt.create_from_json!(data, options)
+        respond_with_record(record, params[:model])
+      rescue StandardError => e
+        respond_with_exception(e)
+      end
+
+      def destroy
         ids = params[:item_ids]
         @dt.where(id: { '$in' => ids }).each(&:destroy)
 

@@ -5,8 +5,15 @@ module Cenit
         private
 
         def find_data_type
-          dt_name = params[:model].classify
-          @dt = Cenit.namespace(:Setup).data_type(dt_name)
+          @dt = begin
+            case params[:model].to_sym
+            when :proxy
+              Cenit::ApiBridges::Proxy
+            else
+              Cenit.namespace(:Setup).data_type(params[:model].classify)
+            end
+          end
+
           respond_with_exception('[400] - Invalid model') unless @dt
         end
 
@@ -27,7 +34,7 @@ module Cenit
         end
 
         def check_parameters
-          fail('Invalid model') unless @dt
+          raise('Invalid model') unless @dt
         end
 
         def respond_with_exception(ex)
@@ -100,12 +107,92 @@ module Cenit
           end
         end
 
+        def parse_request_data(model, action)
+          method = "#{model}_params"
+          parameters = respond_to?(method) ? send(method, action) : params.permit(data: {}).to_h
+
+          options = { primary_field: %i[id] }
+
+          [parameters[:data], options]
+        end
+
         def parse_datetime(value)
           return if value.nil?
 
           value = value.iso8601 if value.is_a?(Time)
           value = DateTime.parse(value) if value.is_a?(String)
           value.iso8601
+        end
+
+        def check_attr_validity(attr, scope_name, scope, required = true, klass = nil, format = nil)
+          unless required.in?([true, false])
+            format = klass
+            klass = required
+            required = true
+          end
+
+          if klass.is_a?(Regexp) || klass.is_a?(Symbol) || klass.is_a?(Array)
+            format = klass
+            klass = nil
+          end
+
+          scope[attr] = scope[attr].strip if scope[attr].is_a?(String)
+
+          check_attr_required(attr, scope_name, scope, required)
+          check_attr_class(attr, scope_name, scope, klass)
+          check_attr_format(attr, scope_name, scope, format)
+        end
+
+        def check_attr_required(attr, scope_name, scope, required = true)
+          return unless required
+
+          scope = scope.to_h if scope.is_a?(ActionController::Parameters)
+          full_name = scope_name ? "#{scope_name}[#{attr}]" : attr
+          raise("[400] - The parameter #{full_name} is required") if scope[attr].blank? && scope[attr] != false
+        end
+
+        def check_attr_class(attr, scope_name, scope, klass = nil)
+          return if scope[attr].nil? || klass.nil?
+
+          full_name = scope_name ? "#{scope_name}[#{attr}]" : attr
+          raise("[400] - The parameter #{full_name} must be #{klass.name}") unless scope[attr].is_a?(klass)
+        end
+
+        def check_attr_format(attr, scope_name, scope, format = nil)
+          return if scope[attr].nil? || format.nil?
+
+          begin
+            case format
+            when Regexp
+              raise('is not valid') if format !~ scope[attr].to_s
+            when :date
+              raise('is not a valid date (YYYY-MM-DD)') if scope[attr].to_s !~ /^\d{4}\-\d{2}\-\d{2}$/
+
+              begin
+                DateTime.parse(scope[attr])
+              rescue StandardError
+                raise('is not a valid date (YYYY-MM-DD)')
+              end
+
+            when :iso8601
+              exp = /^\d{4}\-\d{2}\-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(([ +-]\d{2}:\d{2})|Z)?)?$/
+              raise('is not a valid date (iso8601: YYYY-MM-DDTHH:MM:SSZ)') if scope[attr].to_s !~ exp
+
+              scope[attr].gsub!(/ (\d{2}:\d{2})$/, '+\1')
+              begin
+                DateTime.parse(scope[attr])
+              rescue StandardError
+                raise('is not a valid date (iso8601: YYYY-MM-DDTHH:MM:SSZ)')
+              end
+            when Array
+              raise('is not valid') unless format.include?(scope[attr])
+            else
+              send("check_attr_format_#{format}", attr, scope)
+            end
+          rescue StandardError => ex
+            full_name = scope_name ? "#{scope_name}[#{attr}]" : attr
+            raise("[400] - The parameter #{full_name} #{ex.message}")
+          end
         end
       end
     end

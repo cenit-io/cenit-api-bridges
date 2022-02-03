@@ -13,6 +13,19 @@ module Cenit
             created_at: parse_datetime(record.created_at),
           }
         end
+
+        def api_spec_params(action)
+          parameters = params.permit(data: %i[title specification]).to_h
+
+          check_attr_validity(:data, nil, parameters, true, Hash)
+
+          parameters[:data][:id] = params[:id] if action == :update
+
+          check_attr_validity(:title, nil, parameters[:data], true, String)
+          check_attr_validity(:specification, nil, parameters[:data], true, String)
+
+          parameters
+        end
       end
     end
   end
