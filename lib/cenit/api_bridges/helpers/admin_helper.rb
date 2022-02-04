@@ -7,8 +7,8 @@ module Cenit
         def find_data_type
           @dt = begin
             case params[:model].to_sym
-            when :proxy
-              Cenit::ApiBridges::Proxy
+            when :application
+              Cenit::ApiBridges::Application
             else
               Cenit.namespace(:Setup).data_type(params[:model].classify)
             end

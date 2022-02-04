@@ -1,12 +1,13 @@
 require 'cenit/api_bridges/helpers/admin_helper'
 require 'cenit/api_bridges/helpers/api_spec_helper'
+require 'cenit/api_bridges/helpers/application_helper'
 
 module Cenit
   module ApiBridges
-
     controller do
       include Cenit::ApiBridges::Helpers::AdminHelper
       include Cenit::ApiBridges::Helpers::ApiSpecHelper
+      include Cenit::ApiBridges::Helpers::ApplicationHelper
 
       before_action :find_authorize_account, except: %i[cors_check]
       before_action :find_data_type, except: %i[cors_check]
