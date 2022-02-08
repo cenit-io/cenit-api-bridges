@@ -7,8 +7,12 @@ module Cenit
         def find_data_type
           @dt = begin
             case params[:model].to_sym
-            when :application
-              Cenit::ApiBridges::Application
+            when :bs_app
+              Cenit::ApiBridges::BridgingServiceApplication
+            when :ls_app
+              Cenit::ApiBridges::LocalServiceApplication
+            when :webhooks
+              Setup::PlainWebhook
             else
               Cenit.namespace(:Setup).data_type(params[:model].classify)
             end
@@ -47,7 +51,7 @@ module Cenit
           render json: data, status: code
         end
 
-        def respond_with_record(record, type = nil, with_details = true)
+        def respond_with_record(record, type = nil)
           type ||= record.class.data_type.name.underscore
 
           response = begin
@@ -55,7 +59,7 @@ module Cenit
               type: type,
               data: begin
                 if respond_to?(parse_method = "parse_from_record_to_response_#{type}")
-                  send(parse_method, record, with_details)
+                  send(parse_method, record)
                 else
                   record.to_hash(include_id: true).deep_symbolize_keys
                 end
@@ -83,7 +87,7 @@ module Cenit
                 data: begin
                   dt.where(criteria).order_by(sort).skip(offset).limit(limit).to_a.map do |record|
                     if respond_to?(parse_method = "parse_from_record_to_response_#{type}")
-                      send(parse_method, record, params[:with_details])
+                      send(parse_method, record)
                     else
                       record.to_hash(include_id: true).deep_symbolize_keys
                     end

@@ -2,7 +2,12 @@ module Cenit
   module ApiBridges
     module Helpers
       module ApiSpecHelper
-        def parse_from_record_to_response_api_spec(record, with_details = false)
+
+        def paths
+
+        end
+
+        def parse_from_record_to_response_api_spec(record)
           specification = Psych.load(record.specification).deep_symbolize_keys
           {
             id: record.id.to_s,

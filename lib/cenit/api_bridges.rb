@@ -22,4 +22,4 @@ end
 
 require 'cenit/api_bridges/controllers/default_controller'
 require 'cenit/api_bridges/controllers/admin_controller'
-require 'cenit/api_bridges/models/application'
+require 'cenit/api_bridges/models/bridging_service_application'
