@@ -24,26 +24,36 @@ module Cenit
           {
             method: service.listen.method,
             path: service.listen.path,
+            active: service.active
           }
         end
 
         def bs_app_params(action)
-          parameters = params.permit(data: [
-            :namespace, :listening_path, :target_api_base_url,
-            :specification => [:id]]
+          parameters = params.permit(
+            data: [
+              :namespace, :listening_path, :target_api_base_url,
+              :specification => [:id]
+            ]
           ).to_h
 
           check_attr_validity(:data, nil, parameters, true, Hash)
 
-          parameters[:data][:id] = params[:id] if action == :update
+          data = parameters[:data]
 
-          check_attr_validity(:namespace, nil, parameters[:data], true, String)
-          check_attr_validity(:listening_path, nil, parameters[:data], true, String)
-          check_attr_validity(:target_api_base_url, nil, parameters[:data], true, String)
-          check_attr_validity(:specification, nil, parameters[:data], true, Hash)
-          check_attr_validity(:id, 'specification', parameters[:data][:specification], true, String)
+          if action == :update
+            data[:id] = params[:id]
+            check_allow_params(%i[listening_path target_api_base_url], data)
+          else
+            check_allow_params(%i[listening_path target_api_base_url namespace specification], data)
+          end
 
-          parameters[:data][:specification][:_reference] = true
+          check_attr_validity(:namespace, nil, data, true, String)
+          check_attr_validity(:listening_path, nil, data, true, String)
+          check_attr_validity(:target_api_base_url, nil, data, true, String)
+          check_attr_validity(:specification, nil, data, true, Hash)
+          check_attr_validity(:id, 'specification', data[:specification], true, String)
+
+          data[:specification][:_reference] = true
 
           parameters
         end

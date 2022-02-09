@@ -11,6 +11,8 @@ module Cenit
               Cenit::ApiBridges::BridgingServiceApplication
             when :ls_app
               Cenit::ApiBridges::LocalServiceApplication
+            when :bs
+              Cenit::ApiBridges::BridgingService
             when :webhooks
               Setup::PlainWebhook
             else
@@ -126,6 +128,13 @@ module Cenit
           value = value.iso8601 if value.is_a?(Time)
           value = DateTime.parse(value) if value.is_a?(String)
           value.iso8601
+        end
+
+        def check_allow_params(allow_keys, data = nil)
+          data ||= params
+          if attr = data.keys.detect { |k| !allow_keys.include?(k.to_s) && !allow_keys.include?(k.to_sym) }
+            Cenit.fail("[400] - Unexpected '#{attr}' parameter")
+          end
         end
 
         def check_attr_validity(attr, scope_name, scope, required = true, klass = nil, format = nil)

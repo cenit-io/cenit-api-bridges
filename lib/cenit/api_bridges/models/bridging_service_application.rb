@@ -57,8 +57,10 @@ module Cenit
 
         service = Cenit::ApiBridges::BridgingService.new(
           position: position,
+          active: false,
           listen: { method: method.to_s.upcase, path: path.to_s },
-          target: setup_webhook(spec, path, method),
+          target: { method: method.to_s, path: path.to_s },
+          webhook: setup_webhook(spec, path, method),
           application: { id: self.id },
         )
         service.save!
@@ -66,13 +68,20 @@ module Cenit
 
       def setup_webhook(spec, path, method)
         service_spec = spec[:paths][path][method]
-        Setup::PlainWebhook.new(
+
+        path = path.to_s
+        wh_template_parameters = path.scan(/\{([^\}]+)\}/).flatten.map { |n| { key: n, value: '-' } }
+        wh_path = path.gsub(/\{([^\}]+)\}/, '{{\1}}')
+        wh_data = {
           namespace: self.namespace,
           name: service_spec[:operationId] || "#{method}_#{path.parameterize.underscore}",
           method: method.to_s,
-          path: path.to_s,
-          description: "#{service_spec[:summary]}\n\n#{service_spec[:description]}".strip
-        ).save!
+          path: wh_path,
+          description: "#{service_spec[:summary]}\n\n#{service_spec[:description]}".strip,
+          template_parameters: wh_template_parameters
+        }
+
+        Setup::PlainWebhook.create_from_json!(wh_data)
       end
 
       def destroy_connection

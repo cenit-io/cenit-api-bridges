@@ -1,6 +1,8 @@
 require 'cenit/api_bridges/helpers/admin_helper'
 require 'cenit/api_bridges/helpers/api_spec_helper'
 require 'cenit/api_bridges/helpers/bs_app_helper'
+# require 'cenit/api_bridges/helpers/ls_app_helper'
+require 'cenit/api_bridges/helpers/bridging_service_helper'
 
 module Cenit
   module ApiBridges
@@ -9,6 +11,7 @@ module Cenit
       include Cenit::ApiBridges::Helpers::ApiSpecHelper
       include Cenit::ApiBridges::Helpers::BSAppHelper
       # include Cenit::ApiBridges::Helpers::LSAppHelper
+      include Cenit::ApiBridges::Helpers::BridgingServiceHelper
 
       before_action :find_authorize_account, except: %i[cors_check]
       before_action :find_data_type, except: %i[cors_check]
