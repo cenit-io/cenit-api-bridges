@@ -13,7 +13,12 @@ module Cenit
 
       validates_presence_of :listen, :target, :application
 
+      before_save :transform_listen_path
       before_destroy :destroy_webhook
+
+      def transform_listen_path
+        self.listen.path = self.listen.path.gsub(/\{([^\}]+)\}/, ':\1')
+      end
 
       def destroy_webhook
         self.webhook.try(:destroy)
