@@ -13,8 +13,7 @@ module Cenit
 
     oauth_authorization_for 'openid profile email offline_access session_access multi_tenant create read update delete digest'
 
-    # DEFAULT_CLOUD_URL = ENV['API_BUILDER_FRONTEND'] || 'https://cenit-io-api-builder.onrender.com'
-    DEFAULT_CLOUD_URL = ENV['API_BUILDER_FRONTEND'] || 'http://localhost:1234'
+    DEFAULT_CLOUD_URL = ENV['API_BUILDER_FRONTEND'] || 'https://cenit-api-builder.onrender.com'
 
     default_url DEFAULT_CLOUD_URL
   end
