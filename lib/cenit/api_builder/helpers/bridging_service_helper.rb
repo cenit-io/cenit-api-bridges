@@ -46,7 +46,7 @@ module Cenit
 
           data[:application][:_reference] = true
 
-          parameters
+          data
         end
       end
     end

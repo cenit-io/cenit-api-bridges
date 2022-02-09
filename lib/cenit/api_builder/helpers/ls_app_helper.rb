@@ -31,14 +31,15 @@ module Cenit
 
           check_attr_validity(:data, nil, parameters, true, Hash)
 
-          parameters[:data][:id] = params[:id] if action == :update
+          data = parameters[:data]
+          data[:id] = params[:id] if action == :update
 
-          check_attr_validity(:name, nil, parameters[:data], true, String)
-          check_attr_validity(:listening_path, nil, parameters[:data], true, String)
-          check_attr_validity(:specification, nil, parameters[:data], true, Hash)
-          check_attr_validity(:id, 'specification', parameters[:data][:specification], true, String)
+          check_attr_validity(:name, nil, data, true, String)
+          check_attr_validity(:listening_path, nil, data, true, String)
+          check_attr_validity(:specification, nil, data, true, Hash)
+          check_attr_validity(:id, 'specification', data[:specification], true, String)
 
-          parameters
+          data
         end
       end
     end

@@ -14,16 +14,16 @@ module Cenit
               title: record.specification.title,
             },
 
-            services: record.services.map { |service| parse_from_record_to_response_bs(service) },
+            services: record.services.map { |service| parse_from_record_to_response_bs_ref(service) },
             updated_at: parse_datetime(record.updated_at),
             created_at: parse_datetime(record.created_at),
           }
         end
 
-        def parse_from_record_to_response_bs(service)
+        def parse_from_record_to_response_bs_ref(service)
           {
-            method: service.listen.method,
-            path: service.listen.path,
+            id: service.id.to_s,
+            listen: service.listen,
             active: service.active
           }
         end
@@ -41,21 +41,19 @@ module Cenit
           data = parameters[:data]
 
           if action == :update
-            data[:id] = params[:id]
             check_allow_params(%i[listening_path target_api_base_url], data)
           else
             check_allow_params(%i[listening_path target_api_base_url namespace specification], data)
+            check_attr_validity(:namespace, nil, data, true, String)
+            check_attr_validity(:specification, nil, data, true, Hash)
+            check_attr_validity(:id, 'specification', data[:specification], true, String)
+            data[:specification][:_reference] = true
           end
 
-          check_attr_validity(:namespace, nil, data, true, String)
           check_attr_validity(:listening_path, nil, data, true, String)
           check_attr_validity(:target_api_base_url, nil, data, true, String)
-          check_attr_validity(:specification, nil, data, true, Hash)
-          check_attr_validity(:id, 'specification', data[:specification], true, String)
 
-          data[:specification][:_reference] = true
-
-          parameters
+          data
         end
       end
     end

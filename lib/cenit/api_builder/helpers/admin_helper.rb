@@ -115,11 +115,10 @@ module Cenit
 
         def parse_request_data(model, action)
           method = "#{model}_params"
-          parameters = respond_to?(method) ? send(method, action) : params.permit(data: {}).to_h
+          data = respond_to?(method) ? send(method, action) : params.permit(data: {}).to_h
+          options = { primary_field: %i[id], add_only: action == :update }
 
-          options = { primary_field: %i[id] }
-
-          [parameters[:data], options]
+          [data, options]
         end
 
         def parse_datetime(value)

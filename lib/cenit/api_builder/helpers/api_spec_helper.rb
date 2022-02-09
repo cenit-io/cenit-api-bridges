@@ -2,11 +2,6 @@ module Cenit
   module ApiBuilder
     module Helpers
       module ApiSpecHelper
-
-        def paths
-
-        end
-
         def parse_from_record_to_response_api_spec(record)
           specification = Psych.load(record.specification).deep_symbolize_keys
           {
@@ -24,12 +19,13 @@ module Cenit
 
           check_attr_validity(:data, nil, parameters, true, Hash)
 
-          parameters[:data][:id] = params[:id] if action == :update
+          data = parameters[:data]
+          data[:id] = params[:id] if action == :update
 
-          check_attr_validity(:title, nil, parameters[:data], true, String)
-          check_attr_validity(:specification, nil, parameters[:data], true, String)
+          check_attr_validity(:title, nil, data, true, String)
+          check_attr_validity(:specification, nil, data, true, String)
 
-          parameters
+          data
         end
       end
     end

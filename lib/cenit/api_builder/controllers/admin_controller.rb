@@ -48,8 +48,11 @@ module Cenit
 
       def update
         data, options = parse_request_data(params[:model], :update)
-        record = @dt.create_from_json!(data, options)
-        respond_with_record(record, params[:model])
+
+        @record.fill_from(data, options)
+        @record.save!
+
+        respond_with_record(@record, params[:model])
       rescue StandardError => e
         respond_with_exception(e)
       end
