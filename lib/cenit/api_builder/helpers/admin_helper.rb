@@ -16,7 +16,7 @@ module Cenit
             when :webhooks
               Setup::PlainWebhook
             else
-              Cenit.namespace(:Setup).data_type(params[:model].classify)
+              Cenit.namespace(:Setup).data_type(params[:model].singularize.classify)
             end
           end
 

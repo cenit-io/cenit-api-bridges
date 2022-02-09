@@ -33,7 +33,7 @@ module Cenit
 
         current_connection = self.connection
 
-        criteria = { namespace: 'ApiBuilder', name: "connection_#{self.id.to_s}" }
+        criteria = { namespace: self.namespace, name: 'default_connection' }
         self.connection ||= Setup::Connection.where(criteria).first || Setup::Connection.new(criteria)
 
         self.connection.url = self.target_api_base_url
