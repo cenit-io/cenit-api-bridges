@@ -1,7 +1,7 @@
-require 'cenit/api_bridges/models/bridging_service'
+require 'cenit/api_builder/models/bridging_service'
 
 module Cenit
-  module ApiBridges
+  module ApiBuilder
     document_type :BridgingServiceApplication do
       field :namespace, type: String
       field :listening_path, type: String
@@ -33,7 +33,7 @@ module Cenit
 
         current_connection = self.connection
 
-        criteria = { namespace: 'ApiBridges', name: "connection_#{self.id.to_s}" }
+        criteria = { namespace: 'ApiBuilder', name: "connection_#{self.id.to_s}" }
         self.connection ||= Setup::Connection.where(criteria).first || Setup::Connection.new(criteria)
 
         self.connection.url = self.target_api_base_url
@@ -55,7 +55,7 @@ module Cenit
       def setup_service(spec, path, method, position)
         return false unless spec[:paths][path][method]
 
-        service = Cenit::ApiBridges::BridgingService.new(
+        service = Cenit::ApiBuilder::BridgingService.new(
           position: position,
           active: false,
           listen: { method: method.to_s.upcase, path: path.to_s },

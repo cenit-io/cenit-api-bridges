@@ -1,5 +1,5 @@
 module Cenit
-  module ApiBridges
+  module ApiBuilder
     module Helpers
       module BSAppHelper
         def parse_from_record_to_response_bs_app(record)

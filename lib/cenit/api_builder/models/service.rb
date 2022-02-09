@@ -1,5 +1,5 @@
 module Cenit
-  module ApiBridges
+  module ApiBuilder
     document_type :Service do
       field :method, type: String
       field :path, type: String

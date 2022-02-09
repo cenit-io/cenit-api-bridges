@@ -1,7 +1,7 @@
-require 'cenit/api_bridges/models/service'
+require 'cenit/api_builder/models/service'
 
 module Cenit
-  module ApiBridges
+  module ApiBuilder
     document_type :BridgingService do
       field :position, type: Integer, default: 0
       field :active, type: Mongoid::Boolean, default: false
@@ -9,7 +9,7 @@ module Cenit
       embeds_one :listen, class_name: Service.name, inverse_of: nil
       embeds_one :target, class_name: Service.name, inverse_of: nil
       belongs_to :webhook, class_name: Setup::PlainWebhook.name, inverse_of: nil
-      belongs_to :application, class_name: 'Cenit::ApiBridges::BridgingServiceApplication', inverse_of: :services
+      belongs_to :application, class_name: 'Cenit::ApiBuilder::BridgingServiceApplication', inverse_of: :services
 
       validates_presence_of :listen, :target, :application
 

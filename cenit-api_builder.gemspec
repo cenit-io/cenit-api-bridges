@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require_relative "lib/cenit/api_bridges/version"
+require_relative "lib/cenit/api_builder/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "cenit-api_bridges"
-  spec.version       = Cenit::ApiBridges::VERSION
+  spec.name          = "cenit-api_builder"
+  spec.version       = Cenit::ApiBuilder::VERSION
   spec.authors       = ["Yoandry Pacheco Aguila"]
   spec.email         = ["yoandrypa@gmail.com"]
 
-  spec.summary       = 'CenitIO API Bridges'
-  spec.description   = 'Management API Bridges for CenitIO from OpenAPI Specification'
-  spec.homepage      = 'https://github.com/cenit-io/cenit-api_bridges'
+  spec.summary       = 'CenitIO API Builder'
+  spec.description   = 'Management API Builder for CenitIO from OpenAPI Specification'
+  spec.homepage      = 'https://github.com/cenit-io/cenit-api_builder'
   spec.license       = 'MIT'
   spec.required_ruby_version = '>= 2.5.0'
 

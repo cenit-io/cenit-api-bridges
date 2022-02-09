@@ -1,5 +1,5 @@
 module Cenit
-  module ApiBridges
+  module ApiBuilder
 
     controller do
 

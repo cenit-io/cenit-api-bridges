@@ -1,5 +1,5 @@
 module Cenit
-  module ApiBridges
+  module ApiBuilder
     module Helpers
       module AdminHelper
         private
@@ -8,11 +8,11 @@ module Cenit
           @dt = begin
             case params[:model].to_sym
             when :bs_app
-              Cenit::ApiBridges::BridgingServiceApplication
+              Cenit::ApiBuilder::BridgingServiceApplication
             when :ls_app
-              Cenit::ApiBridges::LocalServiceApplication
+              Cenit::ApiBuilder::LocalServiceApplication
             when :bs
-              Cenit::ApiBridges::BridgingService
+              Cenit::ApiBuilder::BridgingService
             when :webhooks
               Setup::PlainWebhook
             else

@@ -1,5 +1,5 @@
 module Cenit
-  module ApiBridges
+  module ApiBuilder
     module Helpers
       module ApiSpecHelper
 

@@ -1,13 +1,13 @@
-require 'cenit/api_bridges/models/bridging_service'
+require 'cenit/api_builder/models/bridging_service'
 
 module Cenit
-  module ApiBridges
+  module ApiBuilder
     document_type :LocalServiceApplication do
       field :namespace, type: String
       field :listening_path, type: String
 
       belongs_to :specification, class_name: Setup::ApiSpec.name, inverse_of: nil
-      has_many :services, class_name: 'Cenit::ApiBridges::LocalService', inverse_of: :application
+      has_many :services, class_name: 'Cenit::ApiBuilder::LocalService', inverse_of: :application
 
       validates_presence_of :namespace, :listening_path, :specification
 
