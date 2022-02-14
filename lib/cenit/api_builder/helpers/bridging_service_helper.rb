@@ -7,6 +7,8 @@ module Cenit
             id: record.id.to_s,
             listen: record.listen,
             target: record.target,
+            active: record.active,
+            position: record.position,
             application: record.application.try do |app|
               {
                 id: app.id,

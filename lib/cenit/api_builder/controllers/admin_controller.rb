@@ -19,6 +19,11 @@ module Cenit
       before_action :find_data_type, except: %i[cors_check]
       before_action :find_record, only: %i[show update]
 
+      # Custom actions
+      # route :post, '/admin/bs/toggle', to: :toggle_state, model: 'bs'
+      route :post, '/admin/:model/toggle', to: :toggle_state, model: /^(bs)$/
+
+      # Common actions
       route :get, '/admin/:model', to: :index
       route :get, '/admin/:model/:id', to: :show
       route :post, '/admin/:model', to: :create
@@ -66,6 +71,19 @@ module Cenit
         render json: { success: true }
       rescue StandardError => e
         respond_with_exception(e)
+      end
+
+      def toggle_state
+        parameters = params.permit(item_ids: []).to_h
+
+        check_attr_validity(:item_ids, nil, parameters, true, Array)
+
+        @dt.where(id: { '$in' => parameters[:item_ids] }).each do |record|
+          record.active = !record.active
+          record.save!
+        end
+
+        render json: { success: true }
       end
 
     end
