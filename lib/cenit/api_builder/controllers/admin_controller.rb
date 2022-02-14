@@ -19,17 +19,6 @@ module Cenit
       before_action :find_data_type, except: %i[cors_check]
       before_action :find_record, only: %i[show update]
 
-      # Custom actions
-      # route :post, '/admin/bs/toggle', to: :toggle_state, model: 'bs'
-      route :post, '/admin/:model/toggle', to: :toggle_state, model: /^(bs)$/
-
-      # Common actions
-      route :get, '/admin/:model', to: :index
-      route :get, '/admin/:model/:id', to: :show
-      route :post, '/admin/:model', to: :create
-      route :post, '/admin/:model/:id', to: :update
-      route :delete, '/admin/:model', to: :destroy
-
       def index
         criteria = {}
 
