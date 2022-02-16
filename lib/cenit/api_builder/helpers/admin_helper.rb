@@ -121,6 +121,11 @@ module Cenit
           [data, options]
         end
 
+        def fill_from_data(record, data)
+          return data unless data.is_a?(Hash)
+          data.each { |k, v| record[k] = (record[k].nil?) ? v : fill_from_data(record[k], v) }
+        end
+
         def parse_datetime(value)
           return if value.nil?
 
