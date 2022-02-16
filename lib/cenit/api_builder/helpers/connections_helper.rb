@@ -15,13 +15,13 @@ module Cenit
         end
 
         def connections_params(action)
+          raise('[400] - Service not available') if action != :update
+
           parameters = params.permit(data: {}).to_h
 
           check_attr_validity(:data, nil, parameters, true, Hash)
 
           data = parameters[:data]
-
-          raise('[400] - Service not available') if action != :update
 
           check_allow_params(%i[name url], data)
           check_attr_validity(:name, nil, data, true, /^[a-z0-9]+(_[a-z0-9]+)*$/)

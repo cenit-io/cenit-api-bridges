@@ -5,8 +5,8 @@ module Cenit
         def parse_from_record_to_response_bs(record)
           {
             id: record.id.to_s,
-            listen: record.listen,
-            target: record.target,
+            listen: parse_from_record_to_response_service(record.listen),
+            target: parse_from_record_to_response_service(record.target),
             active: record.active,
             position: record.position,
             application: record.application.try do |app|
@@ -22,32 +22,29 @@ module Cenit
           }
         end
 
+        def parse_from_record_to_response_service(record)
+          {
+            path: record.path,
+            method: record.method,
+          }
+        end
+
         def bs_params(action)
-          parameters = params.permit(
-            data: [
-              listen: %i[method path],
-              application: %i[id]
-            ]
-          ).to_h
+          raise('[400] - Service not available') if action != :update
+
+          parameters = params.permit(data: [listen: %i[method path]]).to_h
 
           check_attr_validity(:data, nil, parameters, true, Hash)
 
           data = parameters[:data]
 
-          if action == :update
-            data[:id] = params[:id]
-            check_allow_params(%i[listen], data)
-          else
-            check_allow_params(%i[listen application], data)
-            check_allow_params(%i[id], data[:application])
-          end
+          check_allow_params(%i[listen], data)
           check_allow_params(%i[method path], data[:listen])
 
-          check_attr_validity(:namespace, nil, data, true, String)
-          check_attr_validity(:listening_path, nil, data, true, String)
+          check_attr_validity(:method, 'data[listen]', data[:listen], true, String)
+          check_attr_validity(:path, 'data[listen]', data[:listen], true, String)
 
-          data[:application][:_reference] = true
-
+          data[:id] = params[:id]
           data
         end
       end

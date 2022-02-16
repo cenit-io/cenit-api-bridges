@@ -23,10 +23,12 @@ module Cenit
 
       validates_uniqueness_of :listening_path, scope: :namespace
 
-      after_save :setup_connection
-      after_create :setup_services
-      before_destroy :destroy_connection
-      before_destroy :destroy_services
+      after_save :setup_connection, :setup_services
+      before_destroy :destroy_connection, :destroy_services
+
+      def spec
+        @spec ||= Psych.load(self.specification.specification).deep_symbolize_keys
+      end
 
       def setup_connection
         return if target_api_base_url == self.connection.try(:url)
@@ -43,8 +45,9 @@ module Cenit
       end
 
       def setup_services
+        return unless services.count == 0
+
         position = 0
-        spec = Psych.load(specification.specification).deep_symbolize_keys
         spec[:paths].keys.each do |path|
           %i[get post delete puth].each do |method|
             position += setup_service(spec, path, method, position) ? 1 : 0
@@ -58,30 +61,11 @@ module Cenit
         service = Cenit::ApiBuilder::BridgingService.new(
           position: position,
           active: false,
-          listen: { method: method.to_s.upcase, path: path.to_s },
+          listen: { method: method.to_s, path: path.to_s },
           target: { method: method.to_s, path: path.to_s },
-          webhook: setup_webhook(spec, path, method),
-          application: { id: self.id },
+          application: self,
         )
         service.save!
-      end
-
-      def setup_webhook(spec, path, method)
-        service_spec = spec[:paths][path][method]
-
-        path = path.to_s
-        wh_template_parameters = path.scan(/\{([^\}]+)\}/).flatten.map { |n| { key: n, value: '-' } }
-        wh_path = path.gsub(/\{([^\}]+)\}/, '{{\1}}')
-        wh_data = {
-          namespace: self.namespace,
-          name: service_spec[:operationId] || "#{method}_#{path.parameterize.underscore}",
-          method: method.to_s,
-          path: wh_path,
-          description: "#{service_spec[:summary]}\n\n#{service_spec[:description]}".strip,
-          template_parameters: wh_template_parameters
-        }
-
-        Setup::PlainWebhook.create_from_json!(wh_data)
       end
 
       def destroy_connection
