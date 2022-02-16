@@ -45,7 +45,8 @@ module Cenit
       def update
         data, options = parse_request_data(params[:model], :update)
 
-        @record.fill_from(data, options)
+        fill_from_data(@record, data)
+
         @record.save!
 
         respond_with_record(@record, params[:model])
