@@ -1,4 +1,4 @@
-require 'cenit/api_builder/models/bridging_service'
+require 'cenit/api_builder/models/local_service'
 
 module Cenit
   module ApiBuilder
@@ -7,7 +7,7 @@ module Cenit
       field :listening_path, type: String
 
       belongs_to :specification, class_name: Setup::ApiSpec.name, inverse_of: nil
-      has_many :services, class_name: 'Cenit::ApiBuilder::LocalService', inverse_of: :application
+      has_many :services, class_name: LocalService.name, inverse_of: :application
 
       validates_presence_of :namespace, :listening_path, :specification
 
@@ -18,10 +18,6 @@ module Cenit
       validates_format_of :listening_path, with: /\A[a-z0-9]+([_-][a-z0-9]+)*\Z/
 
       validates_uniqueness_of :listening_path, scope: :namespace
-
-      def destroy_connection
-        connection.try(:destroy)
-      end
     end
   end
 end

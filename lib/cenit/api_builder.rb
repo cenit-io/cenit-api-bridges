@@ -22,4 +22,5 @@ end
 require 'cenit/api_builder/controllers/default_controller'
 require 'cenit/api_builder/controllers/admin_controller'
 require 'cenit/api_builder/models/bridging_service_application'
+require 'cenit/api_builder/models/local_service_application'
 require 'cenit/api_builder/routes'
