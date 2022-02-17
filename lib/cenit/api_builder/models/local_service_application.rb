@@ -7,6 +7,7 @@ module Cenit
       field :listening_path, type: String
 
       belongs_to :specification, class_name: Setup::ApiSpec.name, inverse_of: nil
+
       has_many :services, class_name: LocalService.name, inverse_of: :application
 
       validates_presence_of :namespace, :listening_path, :specification
