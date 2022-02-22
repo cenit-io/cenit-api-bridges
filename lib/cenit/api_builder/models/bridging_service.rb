@@ -5,6 +5,7 @@ module Cenit
     document_type :BridgingService do
       field :priority, type: Integer, default: 0
       field :active, type: Mongoid::Boolean, default: false
+      field :metadata, type: Hash, default: {}
 
       embeds_one :listen, class_name: Service.name, inverse_of: nil
       belongs_to :target, class_name: Setup::PlainWebhook.name, inverse_of: nil
@@ -12,7 +13,6 @@ module Cenit
 
       validates_presence_of :listen, :application
       validate :validate_listen_field
-      validate :validate_target_field
 
       before_save :transform_listen_path
       before_destroy :destroy_target
@@ -29,21 +29,6 @@ module Cenit
         errors.add(:listen, 'already exist') unless self.class.where(criteria).first.nil?
       end
 
-      def validate_target_field
-        return if self.target.present?
-
-        # check valid target
-        self.application&.spec.try do |spec|
-          path = listen.path.gsub(/:([_a-z]\w*)/, '{\1}').to_sym
-          method = listen.method.to_sym
-          if spec[:paths][path].nil?
-            errors.add(:target, 'invalid service path')
-          elsif spec[:paths][path][method].nil?
-            errors.add(:target, 'invalid service method')
-          end
-        end
-      end
-
       def transform_listen_path
         self.listen.path = self.listen.path.gsub(/\{([^\}]+)\}/, ':\1')
       end
@@ -51,10 +36,11 @@ module Cenit
       def setup_target()
         return if self.target.present? || !self.active
 
-        spec = application.spec
-        path = listen.path.gsub(/:([_a-z]\w*)/, '{\1}')
-        method = listen.method
-        service_spec = spec[:paths][path.to_sym][method.to_sym]
+        _metadata = self.metadata.deep_symbolize_keys
+
+        path = _metadata[:path]
+        method = _metadata[:method]
+        service_spec = _metadata[:spec]
 
         wh_template_parameters = path.scan(/\{([^\}]+)\}/).flatten.map { |n| { key: n, value: '-' } }
         wh_path = path.gsub(/\{([^\}]+)\}/, '{{\1}}')

@@ -52,7 +52,7 @@ module Cenit
           %i[get post delete puth].each do |method|
             next unless spec[:paths][path][method]
 
-            setup_service(spec, path, method, priority)
+            setup_service(spec[:paths][path][method], path.to_s, method.to_s, priority)
             priority += 1
           end
         end
@@ -62,8 +62,8 @@ module Cenit
         service = Cenit::ApiBuilder::BridgingService.new(
           priority: priority,
           active: false,
-          listen: { method: method.to_s, path: path.to_s },
-          target: { method: method.to_s, path: path.to_s },
+          listen: { method: method, path: path },
+          metadata: { path: path, method: method, spec: spec },
           application: self,
         )
         service.save!
