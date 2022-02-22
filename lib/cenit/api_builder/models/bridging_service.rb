@@ -25,7 +25,7 @@ module Cenit
           'listen.path' => self.listen.path,
           'listen.method' => self.listen.method,
         }
-        errors.add(:listen, "already exist") unless self.class.where(criteria).first.nil?
+        errors.add(:listen, 'already exist') unless self.class.where(criteria).first.nil?
       end
 
       def transform_listen_path
@@ -48,7 +48,8 @@ module Cenit
           method: method,
           path: wh_path,
           description: "#{service_spec[:summary]}\n\n#{service_spec[:description]}".strip,
-          template_parameters: wh_template_parameters
+          template_parameters: wh_template_parameters,
+          metadata: service_spec
         }
 
         self.webhook = Setup::PlainWebhook.create_from_json!(wh_data)

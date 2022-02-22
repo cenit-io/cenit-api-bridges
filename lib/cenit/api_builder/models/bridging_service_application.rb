@@ -50,14 +50,15 @@ module Cenit
         position = 0
         spec[:paths].keys.each do |path|
           %i[get post delete puth].each do |method|
-            position += setup_service(spec, path, method, position) ? 1 : 0
+            next unless spec[:paths][path][method]
+
+            setup_service(spec, path, method, position)
+            position += 1
           end
         end
       end
 
       def setup_service(spec, path, method, position)
-        return false unless spec[:paths][path][method]
-
         service = Cenit::ApiBuilder::BridgingService.new(
           position: position,
           active: false,
