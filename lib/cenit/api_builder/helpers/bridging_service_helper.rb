@@ -5,8 +5,8 @@ module Cenit
         def parse_from_record_to_response_bs(record)
           {
             id: record.id.to_s,
-            listen: parse_from_record_to_response_service(record.listen),
-            target: parse_from_record_to_response_service(record.target),
+            listen: parse_from_record_to_response_bs_listen(record.listen),
+            target: parse_from_record_to_response_bs_target(record.target),
             active: record.active,
             priority: record.priority,
             application: record.application.try do |app|
@@ -22,7 +22,15 @@ module Cenit
           }
         end
 
-        def parse_from_record_to_response_service(record)
+        def parse_from_record_to_response_bs_listen(record)
+          {
+            path: record.path,
+            method: record.method,
+          }
+        end
+
+        def parse_from_record_to_response_bs_target(record)
+          return nil unless record
           {
             path: record.path,
             method: record.method,

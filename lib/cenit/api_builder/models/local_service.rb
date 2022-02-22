@@ -11,11 +11,14 @@ module Cenit
       belongs_to :application, class_name: 'Cenit::ApiBuilder::LocalServiceApplication', inverse_of: :services
 
       validates_presence_of :listen, :target, :application
-      validate :unique_listen_validation
+      validate :validate_listen_field
 
       before_save :transform_listen_path
+      before_destroy :destroy_data_type
+      after_save :setup_data_type
 
-      def unique_listen_validation
+      def validate_listen_field
+        # check unique
         criteria = {
           'id' => { '$nin' => [self.id.to_s] },
           'application' => self.application,
@@ -28,6 +31,36 @@ module Cenit
       def transform_listen_path
         self.listen.path = self.listen.path.gsub(/\{([^\}]+)\}/, ':\1')
       end
+
+      def setup_data_type
+        return if self.target.present? || !self.active
+
+        spec = application.spec
+        path = target.path
+        method = target.method
+        service_spec = spec[:paths][path.to_sym][method.to_sym]
+
+        wh_template_parameters = path.scan(/\{([^\}]+)\}/).flatten.map { |n| { key: n, value: '-' } }
+        wh_path = path.gsub(/\{([^\}]+)\}/, '{{\1}}')
+        wh_data = {
+          namespace: application.namespace,
+          name: service_spec[:operationId] || "#{method}_#{path.parameterize.underscore}",
+          method: method,
+          path: wh_path,
+          description: "#{service_spec[:summary]}\n\n#{service_spec[:description]}".strip,
+          template_parameters: wh_template_parameters,
+          metadata: service_spec
+        }
+
+        self.webhook = Setup::PlainWebhook.create_from_json!(wh_data)
+
+        save!
+      end
+
+      def destroy_webhook
+        self.target.try(:destroy)
+      end
+
     end
   end
 end

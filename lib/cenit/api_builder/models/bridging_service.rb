@@ -7,18 +7,19 @@ module Cenit
       field :active, type: Mongoid::Boolean, default: false
 
       embeds_one :listen, class_name: Service.name, inverse_of: nil
-      embeds_one :target, class_name: Service.name, inverse_of: nil
-      belongs_to :webhook, class_name: Setup::PlainWebhook.name, inverse_of: nil
+      belongs_to :target, class_name: Setup::PlainWebhook.name, inverse_of: nil
       belongs_to :application, class_name: 'Cenit::ApiBuilder::BridgingServiceApplication', inverse_of: :services
 
-      validates_presence_of :listen, :target, :application
-      validate :unique_listen_validation
+      validates_presence_of :listen, :application
+      validate :validate_listen_field
+      validate :validate_target_field
 
       before_save :transform_listen_path
-      before_destroy :destroy_webhook
-      after_save :setup_webhook
+      before_destroy :destroy_target
+      after_save :setup_target
 
-      def unique_listen_validation
+      def validate_listen_field
+        # check unique
         criteria = {
           'id' => { '$nin' => [self.id.to_s] },
           'application' => self.application,
@@ -28,16 +29,31 @@ module Cenit
         errors.add(:listen, 'already exist') unless self.class.where(criteria).first.nil?
       end
 
+      def validate_target_field
+        return if self.target.present?
+
+        # check valid target
+        self.application&.spec.try do |spec|
+          path = listen.path.gsub(/:([_a-z]\w*)/, '{\1}').to_sym
+          method = listen.method.to_sym
+          if spec[:paths][path].nil?
+            errors.add(:target, 'invalid service path')
+          elsif spec[:paths][path][method].nil?
+            errors.add(:target, 'invalid service method')
+          end
+        end
+      end
+
       def transform_listen_path
         self.listen.path = self.listen.path.gsub(/\{([^\}]+)\}/, ':\1')
       end
 
-      def setup_webhook()
-        return if self.webhook.present? || !self.active
+      def setup_target()
+        return if self.target.present? || !self.active
 
         spec = application.spec
-        path = target.path
-        method = target.method
+        path = listen.path.gsub(/:([_a-z]\w*)/, '{\1}')
+        method = listen.method
         service_spec = spec[:paths][path.to_sym][method.to_sym]
 
         wh_template_parameters = path.scan(/\{([^\}]+)\}/).flatten.map { |n| { key: n, value: '-' } }
@@ -52,13 +68,13 @@ module Cenit
           metadata: service_spec
         }
 
-        self.webhook = Setup::PlainWebhook.create_from_json!(wh_data)
+        self.target = Setup::PlainWebhook.create_from_json!(wh_data)
 
-        save!
+        self.save!
       end
 
-      def destroy_webhook
-        self.webhook.try(:destroy)
+      def destroy_target
+        self.target.try(:destroy)
       end
     end
   end

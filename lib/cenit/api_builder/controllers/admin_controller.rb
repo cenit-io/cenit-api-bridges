@@ -74,6 +74,8 @@ module Cenit
         end
 
         render json: { success: true }
+      rescue StandardError => e
+        respond_with_exception(e)
       end
 
     end
