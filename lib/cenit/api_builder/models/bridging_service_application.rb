@@ -47,20 +47,20 @@ module Cenit
       def setup_services
         return unless services.count == 0
 
-        position = 0
+        priority = 0
         spec[:paths].keys.each do |path|
           %i[get post delete puth].each do |method|
             next unless spec[:paths][path][method]
 
-            setup_service(spec, path, method, position)
-            position += 1
+            setup_service(spec, path, method, priority)
+            priority += 1
           end
         end
       end
 
-      def setup_service(spec, path, method, position)
+      def setup_service(spec, path, method, priority)
         service = Cenit::ApiBuilder::BridgingService.new(
-          position: position,
+          priority: priority,
           active: false,
           listen: { method: method.to_s, path: path.to_s },
           target: { method: method.to_s, path: path.to_s },

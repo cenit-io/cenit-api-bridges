@@ -8,7 +8,7 @@ module Cenit
             listen: parse_from_record_to_response_service(record.listen),
             target: parse_from_record_to_response_service(record.target),
             active: record.active,
-            position: record.position,
+            priority: record.priority,
             application: record.application.try do |app|
               {
                 id: app.id,
