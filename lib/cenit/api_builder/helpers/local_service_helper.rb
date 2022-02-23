@@ -1,12 +1,12 @@
 module Cenit
   module ApiBuilder
     module Helpers
-      module BridgingServiceHelper
-        def parse_from_record_to_response_bs(record)
+      module LocalServiceHelper
+        def parse_from_record_to_response_ls(record)
           {
             id: record.id.to_s,
-            listen: parse_from_record_to_response_bs_listen(record.listen),
-            target: parse_from_record_to_response_bs_target(record.target),
+            listen: parse_from_record_to_response_ls_listen(record.listen),
+            target: parse_from_record_to_response_ls_target(record.target),
             active: record.active,
             priority: record.priority,
             application: record.application.try do |app|
@@ -22,23 +22,23 @@ module Cenit
           }
         end
 
-        def parse_from_record_to_response_bs_listen(record)
+        def parse_from_record_to_response_ls_listen(record)
           {
             path: record.path,
             method: record.method,
           }
         end
 
-        def parse_from_record_to_response_bs_target(record)
+        def parse_from_record_to_response_ls_target(record)
           return nil unless record
 
           {
-            path: record.path,
-            method: record.method,
+            namespace: record.namespace,
+            name: record.name,
           }
         end
 
-        def bs_params(action)
+        def ls_params(action)
           raise('[400] - Service not available') if action != :update
 
           parameters = params.permit(data: [listen: %i[method path]]).to_h

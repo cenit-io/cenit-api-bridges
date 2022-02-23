@@ -5,17 +5,17 @@ module Cenit
     document_type :LocalService do
       field :priority, type: Integer, default: 0
       field :active, type: Mongoid::Boolean, default: false
+      field :metadata, type: Hash, default: {}
 
       embeds_one :listen, class_name: Service.name, inverse_of: nil
       belongs_to :target, class_name: Setup::JsonDataType.name, inverse_of: nil
       belongs_to :application, class_name: 'Cenit::ApiBuilder::LocalServiceApplication', inverse_of: :services
 
-      validates_presence_of :listen, :target, :application
+      validates_presence_of :listen, :application
       validate :validate_listen_field
 
       before_save :transform_listen_path
-      before_destroy :destroy_data_type
-      after_save :setup_data_type
+      after_save :setup_target
 
       def validate_listen_field
         # check unique
@@ -32,33 +32,32 @@ module Cenit
         self.listen.path = self.listen.path.gsub(/\{([^\}]+)\}/, ':\1')
       end
 
-      def setup_data_type
+      def setup_target
         return if self.target.present? || !self.active
 
-        spec = application.spec
-        path = target.path
-        method = target.method
-        service_spec = spec[:paths][path.to_sym][method.to_sym]
+        dt_spec = self.metadata.deep_symbolize_keys
+        dt_name = dt_spec[:name].parameterize.underscore.classify
+        dt_data = { namespace: application.namespace, name: dt_name }
 
-        wh_template_parameters = path.scan(/\{([^\}]+)\}/).flatten.map { |n| { key: n, value: '-' } }
-        wh_path = path.gsub(/\{([^\}]+)\}/, '{{\1}}')
-        wh_data = {
-          namespace: application.namespace,
-          name: service_spec[:operationId] || "#{method}_#{path.parameterize.underscore}",
-          method: method,
-          path: wh_path,
-          description: "#{service_spec[:summary]}\n\n#{service_spec[:description]}".strip,
-          template_parameters: wh_template_parameters,
-          metadata: service_spec
-        }
+        self.target = Setup::JsonDataType.where(dt_data).first || Setup::JsonDataType.create_from_json!(
+          dt_data.merge(
+            title: dt_spec[:title] || dt_name,
+            code: parse_cenit_schema.to_json
+          )
+        )
 
-        self.webhook = Setup::PlainWebhook.create_from_json!(wh_data)
-
-        save!
+        self.save!
       end
 
-      def destroy_webhook
-        self.target.try(:destroy)
+      def parse_cenit_schema
+        schema = {
+          type: 'object',
+          properties: {
+            name: { type: 'string' }
+          }
+        }
+
+        schema
       end
 
     end

@@ -31,21 +31,26 @@ module Cenit
         return unless services.count == 0
 
         priority = 0
-        spec[:paths].keys.each do |path|
-          %i[get post delete puth].each do |method|
-            priority += setup_service(spec, path, method, priority) ? 1 : 0
-          end
+        spec[:components][:schemas].keys.each do |name|
+          schema = spec[:components][:schemas][name]
+          schema[:name] ||= name.to_s
+
+          setup_service(schema, "#{name}", 'get', priority)
+          setup_service(schema, "#{name}", 'post', priority)
+          setup_service(schema, "#{name}/:id", 'get', priority)
+          setup_service(schema, "#{name}/:id", 'post', priority)
+          setup_service(schema, "#{name}/:id", 'delete', priority)
+
+          priority += 1
         end
       end
 
       def setup_service(spec, path, method, priority)
-        return false unless spec[:paths][path][method]
-
         service = Cenit::ApiBuilder::LocalService.new(
           priority: priority,
           active: false,
-          listen: { method: method.to_s, path: path.to_s },
-          target: { method: method.to_s, path: path.to_s },
+          listen: { method: method, path: path },
+          metadata: spec,
           application: self,
         )
         service.save!

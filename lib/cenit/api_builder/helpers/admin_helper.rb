@@ -13,6 +13,8 @@ module Cenit
               Cenit::ApiBuilder::LocalServiceApplication
             when :bs
               Cenit::ApiBuilder::BridgingService
+            when :ls
+              Cenit::ApiBuilder::LocalService
             when :webhooks
               Setup::PlainWebhook
             else

@@ -55,7 +55,6 @@ module Cenit
         }
 
         self.target = Setup::PlainWebhook.create_from_json!(wh_data)
-
         self.save!
       end
 
