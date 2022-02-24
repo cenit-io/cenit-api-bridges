@@ -32,11 +32,28 @@ module Cenit
         end
       end
 
+      def eligible_api_schema?(api_schema)
+        return false if api_schema.one_of || api_schema.any_of || api_schema.not
+
+        type = api_schema.type || 'object'
+
+        case type.to_sym
+        when :object
+          return false if api_schema.properties.detect { |_, schema| !eligible_api_schema?(schema) }
+        when :array
+          return eligible_api_schema?(api_schema.items)
+        end
+
+        true
+      end
+
       def setup_services
         return unless services.count == 0
 
         priority = 0
         spec.components.schemas.keys.each do |name|
+          next unless eligible_api_schema?(spec.components.schemas[name])
+
           setup_service(name, "#{name}", 'get', priority)
           setup_service(name, "#{name}", 'post', priority)
           setup_service(name, "#{name}/:id", 'get', priority)
