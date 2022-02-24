@@ -17,6 +17,8 @@ module Cenit
       before_save :transform_listen_path
       after_save :setup_target
 
+      protected
+
       def validate_listen_field
         # check unique
         criteria = {
@@ -35,29 +37,43 @@ module Cenit
       def setup_target
         return if self.target.present? || !self.active
 
-        dt_spec = self.metadata.deep_symbolize_keys
-        dt_name = dt_spec[:name].parameterize.underscore.classify
+        dt_name = schema_name_form_api_spec.parameterize.underscore.classify
         dt_data = { namespace: application.namespace, name: dt_name }
+        api_schema = self.application.spec.components.schemas[schema_name_form_api_spec]
 
         self.target = Setup::JsonDataType.where(dt_data).first || Setup::JsonDataType.create_from_json!(
           dt_data.merge(
-            title: dt_spec[:title] || dt_name,
-            code: parse_cenit_schema.to_json
+            title: api_schema.title || dt_name,
+            code: parse_json_schema(api_schema).to_json
           )
         )
 
         self.save!
       end
 
-      def parse_cenit_schema
-        schema = {
-          type: 'object',
-          properties: {
-            name: { type: 'string' }
-          }
-        }
+      def schema_name_form_api_spec
+        self.metadata.deep_symbolize_keys[:schema_name]
+      end
 
-        schema
+      def parse_json_schema(api_schema)
+        type = api_schema.type || 'object'
+
+        json_schema = { type: type, description: api_schema.description }
+
+        case type.to_sym
+        when :object
+          json_schema[:properties] = api_schema.properties.inject({}) do |p_json_schema, p_api_schema|
+            name, schema = p_api_schema
+            p_json_schema[name] = parse_json_schema(schema)
+            p_json_schema
+          end
+
+          api_schema.all_of&.each { |schema| json_schema[:properties].merge!(parse_json_schema(schema)[:properties]) }
+        when :array
+          json_schema[:items] = parse_json_schema(api_schema.items)
+        end
+
+        json_schema
       end
 
     end

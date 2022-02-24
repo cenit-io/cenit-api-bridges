@@ -1,3 +1,4 @@
+require 'openapi3_parser'
 require 'cenit/api_builder/models/local_service'
 
 module Cenit
@@ -24,33 +25,34 @@ module Cenit
       before_destroy :destroy_services
 
       def spec
-        @spec ||= Psych.load(self.specification.specification).deep_symbolize_keys
+        @spec ||= begin
+          api_spec = Psych.load(self.specification.specification)
+          api_spec.delete('swagger')
+          Openapi3Parser.load(api_spec)
+        end
       end
 
       def setup_services
         return unless services.count == 0
 
         priority = 0
-        spec[:components][:schemas].keys.each do |name|
-          schema = spec[:components][:schemas][name]
-          schema[:name] ||= name.to_s
-
-          setup_service(schema, "#{name}", 'get', priority)
-          setup_service(schema, "#{name}", 'post', priority)
-          setup_service(schema, "#{name}/:id", 'get', priority)
-          setup_service(schema, "#{name}/:id", 'post', priority)
-          setup_service(schema, "#{name}/:id", 'delete', priority)
+        spec.components.schemas.keys.each do |name|
+          setup_service(name, "#{name}", 'get', priority)
+          setup_service(name, "#{name}", 'post', priority)
+          setup_service(name, "#{name}/:id", 'get', priority)
+          setup_service(name, "#{name}/:id", 'post', priority)
+          setup_service(name, "#{name}/:id", 'delete', priority)
 
           priority += 1
         end
       end
 
-      def setup_service(spec, path, method, priority)
+      def setup_service(schema_name, path, method, priority)
         service = Cenit::ApiBuilder::LocalService.new(
           priority: priority,
           active: false,
           listen: { method: method, path: path },
-          metadata: spec,
+          metadata: { schema_name: schema_name },
           application: self,
         )
         service.save!
