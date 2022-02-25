@@ -1,3 +1,4 @@
+require 'openapi3_parser'
 require 'cenit/api_builder/models/bridging_service'
 
 module Cenit
@@ -27,7 +28,11 @@ module Cenit
       before_destroy :destroy_connection, :destroy_services
 
       def spec
-        @spec ||= Psych.load(self.specification.specification).deep_symbolize_keys
+        @spec ||= begin
+          api_spec = Psych.load(self.specification.specification)
+          api_spec.delete('swagger')
+          Openapi3Parser.load(api_spec)
+        end
       end
 
       def setup_connection
@@ -48,11 +53,11 @@ module Cenit
         return unless services.count == 0
 
         priority = 0
-        spec[:paths].keys.each do |path|
-          %i[get post delete puth].each do |method|
-            next unless spec[:paths][path][method]
+        spec.paths.keys.each do |path|
+          %w[get post delete puth].each do |method|
+            next unless spec.paths[path][method]
 
-            setup_service(spec[:paths][path][method], path.to_s, method.to_s, priority)
+            setup_service(spec.paths[path][method], path, method, priority)
             priority += 1
           end
         end
@@ -63,7 +68,7 @@ module Cenit
           priority: priority,
           active: false,
           listen: { method: method, path: path },
-          metadata: { path: path, method: method, spec: spec },
+          metadata: { path: path, method: method },
           application: self,
         )
         service.save!

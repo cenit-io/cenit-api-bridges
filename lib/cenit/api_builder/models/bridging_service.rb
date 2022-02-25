@@ -21,45 +21,75 @@ module Cenit
       def validate_listen_field
         # check unique
         criteria = {
-          'id' => { '$nin' => [self.id.to_s] },
-          'application' => self.application,
-          'listen.path' => self.listen.path,
-          'listen.method' => self.listen.method,
+          'id' => { '$nin' => [id.to_s] },
+          'application' => application,
+          'listen.path' => listen.path,
+          'listen.method' => listen.method,
         }
         errors.add(:listen, 'already exist') unless self.class.where(criteria).first.nil?
       end
 
       def transform_listen_path
-        self.listen.path = self.listen.path.gsub(/\{([^\}]+)\}/, ':\1')
+        listen.path = listen.path.gsub(/\{([^\}]+)\}/, ':\1')
       end
 
       def setup_target()
-        return if self.target.present? || !self.active
+        return if target.present? || !active
 
-        _metadata = self.metadata.deep_symbolize_keys
+        meta_data = metadata.deep_symbolize_keys
+        path = meta_data[:path]
+        method = meta_data[:method]
+        service_spec = application.spec.paths[path][method]
 
-        path = _metadata[:path]
-        method = _metadata[:method]
-        service_spec = _metadata[:spec]
-
-        wh_template_parameters = path.scan(/\{([^\}]+)\}/).flatten.map { |n| { key: n, value: '-' } }
         wh_path = path.gsub(/\{([^\}]+)\}/, '{{\1}}')
         wh_data = {
           namespace: application.namespace,
-          name: service_spec[:operationId] || "#{method}_#{path.parameterize.underscore}",
+          name: service_spec.operation_id || "#{method}_#{path.parameterize.underscore}",
           method: method,
           path: wh_path,
-          description: "#{service_spec[:summary]}\n\n#{service_spec[:description]}".strip,
-          template_parameters: wh_template_parameters,
-          metadata: service_spec
+          description: "#{service_spec.summary}\n\n#{service_spec.description}".strip,
+          headers: parse_webhook_headers(service_spec),
+          parameters: parse_webhook_parameters(service_spec),
+          template_parameters: parse_webhook_template_parameters(service_spec),
+          metadata: meta_data.merge(service_parameters: parse_service_parameters(service_spec))
         }
 
         self.target = Setup::PlainWebhook.create_from_json!(wh_data)
-        self.save!
+        save!
+      end
+
+      def parse_webhook_parameters(service_spec)
+        service_spec.parameters.select { |p| p.in == 'query' }.map do |p|
+          { key: p.name, value: "{{#{p.name}}}" }
+        end
+      end
+
+      def parse_webhook_template_parameters(service_spec)
+        service_spec.parameters.map do |p|
+          { key: p.name, value: p.schema.example ? JSON.generate(p.schema.example) : '' }
+        end
+      end
+
+      def parse_webhook_headers(service_spec)
+        service_spec.parameters.select { |p| p.in == 'header' }.map do |p|
+          { key: p.name, value: "{{#{p.name}}}" }
+        end
+      end
+
+      def parse_service_parameters(service_spec)
+        service_spec.parameters.map do |p|
+          {
+            name: p.name,
+            type: p.schema.type,
+            in: p.in,
+            description: p.description || p.schema.description,
+            required: p.required?
+          }
+        end
       end
 
       def destroy_target
-        self.target.try(:destroy)
+        target.try(:destroy)
       end
     end
   end
