@@ -20,7 +20,7 @@ module Cenit
 
       validates_format_of :namespace, with: /\A[a-z][a-z0-9]*\Z/i
       validates_format_of :listening_path, with: /\A[a-z0-9]+([_-][a-z0-9]+)*\Z/
-      validates_format_of :target_api_base_url, with: /\Ahttp(s)?:\/\/([\w-]+\.)+[a-z]{2,3}(\/.*)*\Z/
+      validates_format_of :target_api_base_url, with: /\Ahttp(s)?:\/\/((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([\w-]+\.)+[a-z]{2,3})(:\d+)?(\/.*)*\Z/
 
       validates_uniqueness_of :listening_path, scope: :namespace
 
