@@ -38,6 +38,19 @@ module Cenit
           }
         end
 
+        def parse_from_params_to_selection_bs_criteria
+          exp_term = { '$regex' => ".*#{params[:term]}.*", '$options' => 'i' }
+          app_ids = Cenit::ApiBuilder::BridgingServiceApplication.where(namespace: exp_term).map(&:id)
+
+          terms_conditions = [
+            { 'application_id' => { '$in' => app_ids } },
+            { 'listen.method' => exp_term },
+            { 'listen.path' => exp_term }
+          ]
+
+          { '$and' => [{ '$or' => terms_conditions }] }
+        end
+
         def bs_params(action)
           raise('[400] - Service not available') if action != :update
 

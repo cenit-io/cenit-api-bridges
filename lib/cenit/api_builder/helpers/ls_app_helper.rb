@@ -27,6 +27,12 @@ module Cenit
           }
         end
 
+        def parse_from_params_to_selection_ls_app_criteria
+          exp_term = { '$regex' => ".*#{params[:term]}.*", '$options' => 'i' }
+          terms_conditions = [{ namespace: exp_term }, { 'listening_path': exp_term }]
+          { '$and' => [{ '$or' => terms_conditions }] }
+        end
+
         def ls_app_params(action)
           parameters = params.permit(
             data: [

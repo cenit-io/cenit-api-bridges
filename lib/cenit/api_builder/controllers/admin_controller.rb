@@ -22,9 +22,7 @@ module Cenit
       before_action :find_record, only: %i[show update]
 
       def index
-        criteria = {}
-
-        respond_with_records(@dt, criteria, params[:model])
+        respond_with_records(@dt, params[:model])
       rescue StandardError => e
         respond_with_exception(e)
       end

@@ -74,9 +74,11 @@ module Cenit
           respond_with_format(response)
         end
 
-        def respond_with_records(dt, criteria, type = nil)
+        def respond_with_records(dt, type = nil)
           type ||= dt.name.underscore
 
+          parse_method = "parse_from_params_to_selection_#{type}_criteria"
+          criteria = respond_to?(parse_method) ? send(parse_method) : {}
           offset = params[:offset].to_i
           limit = (params[:limit] || 10).to_i
           sort = params[:sort] || { created_at: 'DESC' }
