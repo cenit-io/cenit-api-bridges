@@ -41,6 +41,18 @@ module Cenit
         method = meta_data[:method]
         service_spec = application.spec.paths[path][method]
 
+        headers = parse_webhook_headers(application.spec.paths[path])
+        headers.concat(parse_webhook_headers(service_spec))
+
+        parameters = parse_webhook_parameters(application.spec.paths[path])
+        parameters.concat(parse_webhook_parameters(service_spec))
+
+        template_parameters = parse_webhook_template_parameters(application.spec.paths[path])
+        template_parameters.concat(parse_webhook_template_parameters(service_spec))
+
+        service_parameters = parse_service_parameters(application.spec.paths[path])
+        service_parameters.concat(parse_service_parameters(service_spec))
+
         wh_path = path.gsub(/\{([^\}]+)\}/, '{{\1}}')
         wh_data = {
           namespace: application.namespace,
@@ -48,10 +60,10 @@ module Cenit
           method: method,
           path: wh_path,
           description: "#{service_spec.summary}\n\n#{service_spec.description}".strip,
-          headers: parse_webhook_headers(service_spec),
-          parameters: parse_webhook_parameters(service_spec),
-          template_parameters: parse_webhook_template_parameters(service_spec),
-          metadata: meta_data.merge(service_parameters: parse_service_parameters(service_spec))
+          headers: headers,
+          parameters: parameters,
+          template_parameters: template_parameters,
+          metadata: meta_data.merge(service_parameters: service_parameters)
         }
 
         self.target = Setup::PlainWebhook.create_from_json!(wh_data)
