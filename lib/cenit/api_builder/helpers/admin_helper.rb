@@ -7,15 +7,15 @@ module Cenit
         def find_data_type
           @dt = begin
             case params[:model].to_sym
-            when :bs_app
+            when :bs_apps
               Cenit::ApiBuilder::BridgingServiceApplication
-            when :ls_app
+            when :ls_apps
               Cenit::ApiBuilder::LocalServiceApplication
-            when :bs
+            when :bridging_services
               Cenit::ApiBuilder::BridgingService
-            when :ls
+            when :local_services
               Cenit::ApiBuilder::LocalService
-            when :webhooks, :connections, :json_data_types, :authorizations
+            when :api_spec, :webhooks, :connections, :json_data_types, :authorizations
               Cenit.namespace(:Setup).data_type(params[:model].singularize.classify)
             end
           end
@@ -60,7 +60,7 @@ module Cenit
             {
               type: type,
               data: begin
-                if respond_to?(parse_method = "parse_from_record_to_response_#{type}")
+                if respond_to?(parse_method = "parse_from_record_to_response_#{type.singularize}")
                   send(parse_method, record)
                 else
                   record.to_hash(include_id: true).deep_symbolize_keys
@@ -90,7 +90,7 @@ module Cenit
                 type: type,
                 data: begin
                   dt.where(criteria).order_by(sort).skip(offset).limit(limit).to_a.map do |record|
-                    if respond_to?(parse_method = "parse_from_record_to_response_#{type}")
+                    if respond_to?(parse_method = "parse_from_record_to_response_#{type.singularize}")
                       send(parse_method, record)
                     else
                       record.to_hash(include_id: true).deep_symbolize_keys
@@ -116,7 +116,7 @@ module Cenit
         end
 
         def parse_request_data(model, action)
-          method = "#{model}_params"
+          method = "#{model.singularize}_params"
           data = respond_to?(method) ? send(method, action) : params.permit(data: {}).to_h
           options = { primary_field: %i[id], add_only: action == :update }
 

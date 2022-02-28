@@ -2,7 +2,7 @@ module Cenit
   module ApiBuilder
     module Helpers
       module LocalServiceHelper
-        def parse_from_record_to_response_ls(record)
+        def parse_from_record_to_response_local_service(record)
           {
             id: record.id.to_s,
             listen: parse_from_record_to_response_ls_listen(record.listen),
@@ -38,7 +38,7 @@ module Cenit
           }
         end
 
-        def parse_from_params_to_selection_ls_criteria
+        def parse_from_params_to_selection_local_services_criteria
           exp_term = { '$regex' => ".*#{params[:term]}.*", '$options' => 'i' }
 
           terms_conditions = [
@@ -58,7 +58,7 @@ module Cenit
           criteria.any? ? { '$and' => criteria } : {}
         end
 
-        def ls_params(action)
+        def local_service_params(action)
           raise('[400] - Service not available') if action != :update
 
           parameters = params.permit(data: [listen: %i[method path]]).to_h

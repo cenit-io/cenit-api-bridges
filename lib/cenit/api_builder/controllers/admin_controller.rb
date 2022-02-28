@@ -1,10 +1,11 @@
 require 'cenit/api_builder/helpers/admin_helper'
 require 'cenit/api_builder/helpers/api_spec_helper'
-require 'cenit/api_builder/helpers/bs_app_helper'
-require 'cenit/api_builder/helpers/ls_app_helper'
+require 'cenit/api_builder/helpers/bs_apps_helper'
+require 'cenit/api_builder/helpers/ls_apps_helper'
 require 'cenit/api_builder/helpers/bridging_service_helper'
 require 'cenit/api_builder/helpers/local_service_helper'
 require 'cenit/api_builder/helpers/connections_helper'
+require 'cenit/api_builder/helpers/json_data_types_helper'
 
 module Cenit
   module ApiBuilder
@@ -16,6 +17,8 @@ module Cenit
       include Helpers::BridgingServiceHelper
       include Helpers::LocalServiceHelper
       include Helpers::ConnectionsHelper
+      include Helpers::ConnectionsHelper
+      include Helpers::JsonDataTypesHelper
 
       before_action :find_authorize_account, except: %i[cors_check]
       before_action :find_data_type, except: %i[cors_check]

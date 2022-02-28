@@ -2,7 +2,7 @@ module Cenit
   module ApiBuilder
     module Helpers
       module ConnectionsHelper
-        def parse_from_record_to_response_connections(record)
+        def parse_from_record_to_response_connection(record)
           {
             id: record.id.to_s,
             namespace: record.namespace,
