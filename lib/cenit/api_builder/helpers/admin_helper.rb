@@ -15,9 +15,7 @@ module Cenit
               Cenit::ApiBuilder::BridgingService
             when :ls
               Cenit::ApiBuilder::LocalService
-            when :webhooks
-              Setup::PlainWebhook
-            else
+            when :webhooks, :connections, :json_data_types, :authorizations
               Cenit.namespace(:Setup).data_type(params[:model].singularize.classify)
             end
           end

@@ -40,15 +40,22 @@ module Cenit
 
         def parse_from_params_to_selection_bs_criteria
           exp_term = { '$regex' => ".*#{params[:term]}.*", '$options' => 'i' }
-          app_ids = Cenit::ApiBuilder::BridgingServiceApplication.where(namespace: exp_term).map(&:id)
 
           terms_conditions = [
-            { 'application_id' => { '$in' => app_ids } },
             { 'listen.method' => exp_term },
             { 'listen.path' => exp_term }
           ]
 
-          { '$and' => [{ '$or' => terms_conditions }] }
+          unless params[:app_id].present?
+            app_ids = Cenit::ApiBuilder::BridgingServiceApplication.where(namespace: exp_term).map(&:id)
+            terms_conditions << { 'application_id' => { '$in' => app_ids } }
+          end
+
+          criteria = []
+          criteria << { application_id: params[:app_id] } if params[:app_id].present?
+          criteria << { '$or' => terms_conditions } if params[:term].present?
+
+          criteria.any? ? { '$and' => criteria } : {}
         end
 
         def bs_params(action)
