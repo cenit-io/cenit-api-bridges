@@ -19,7 +19,7 @@ module Cenit
       validates_format_of :namespace, with: /\A[a-z][a-z0-9]*\Z/i
       validates_format_of :listening_path, with: /\A[a-z0-9]+([_-][a-z0-9]+)*\Z/
 
-      validates_uniqueness_of :listening_path, scope: :namespace
+      validates_uniqueness_of :listening_path
 
       after_save :setup_services
       before_destroy :destroy_services
