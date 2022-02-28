@@ -6,6 +6,7 @@ require 'cenit/api_builder/helpers/bridging_service_helper'
 require 'cenit/api_builder/helpers/local_service_helper'
 require 'cenit/api_builder/helpers/connections_helper'
 require 'cenit/api_builder/helpers/json_data_types_helper'
+require 'cenit/api_builder/helpers/webhooks_helper'
 
 module Cenit
   module ApiBuilder
@@ -19,6 +20,7 @@ module Cenit
       include Helpers::ConnectionsHelper
       include Helpers::ConnectionsHelper
       include Helpers::JsonDataTypesHelper
+      include Helpers::WebHooksHelper
 
       before_action :find_authorize_account, except: %i[cors_check]
       before_action :find_data_type, except: %i[cors_check]
