@@ -22,6 +22,7 @@ module Cenit
           check_attr_validity(:data, nil, parameters, true, Hash)
 
           data = parameters[:data]
+          data[:id] = params[:id]
 
           check_allow_params(%i[name url], data)
           check_attr_validity(:name, nil, data, true, /^[a-z0-9]+(_[a-z0-9]+)*$/)

@@ -9,10 +9,12 @@ module Cenit
             listening_path: record.listening_path,
             target_api_base_url: record.target_api_base_url,
 
-            specification: {
-              id: record.specification.id.to_s,
-              title: record.specification.title,
-            },
+            specification: record.specification.try do |spec|
+              {
+                id: spec.id.to_s,
+                title: spec.title,
+              }
+            end,
 
             services: record.services.map { |service| parse_from_record_to_response_bs_ref(service) },
             updated_at: parse_datetime(record.updated_at),
@@ -48,6 +50,7 @@ module Cenit
 
           if action == :update
             check_allow_params(%i[listening_path target_api_base_url], data)
+            data[:id] = params[:id]
           else
             check_allow_params(%i[listening_path target_api_base_url namespace specification], data)
             check_attr_validity(:namespace, nil, data, true, String)

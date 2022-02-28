@@ -1,3 +1,7 @@
+require 'cenit/api_builder/models/open_api_spec'
+require 'cenit/api_builder/models/bridging_service_application'
+require 'cenit/api_builder/models/local_service_application'
+
 module Cenit
   module ApiBuilder
     module Helpers
@@ -7,6 +11,8 @@ module Cenit
         def find_data_type
           @dt = begin
             case params[:model].to_sym
+            when :open_api_spec, :api_spec
+              Cenit::ApiBuilder::OpenApiSpec
             when :bs_apps
               Cenit::ApiBuilder::BridgingServiceApplication
             when :ls_apps

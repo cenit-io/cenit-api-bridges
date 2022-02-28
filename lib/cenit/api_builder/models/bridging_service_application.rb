@@ -1,4 +1,4 @@
-require 'openapi3_parser'
+require 'cenit/api_builder/models/open_api_spec'
 require 'cenit/api_builder/models/bridging_service'
 
 module Cenit
@@ -8,7 +8,7 @@ module Cenit
       field :listening_path, type: String
       field :target_api_base_url, type: String
 
-      belongs_to :specification, class_name: Setup::ApiSpec.name, inverse_of: nil
+      belongs_to :specification, class_name: OpenApiSpec.name, inverse_of: nil
       belongs_to :connection, class_name: Setup::Connection.name, inverse_of: nil
 
       has_many :services, class_name: BridgingService.name, inverse_of: :application
@@ -28,11 +28,7 @@ module Cenit
       before_destroy :destroy_connection, :destroy_services
 
       def spec
-        @spec ||= begin
-          api_spec = Psych.load(self.specification.specification)
-          api_spec.delete('swagger')
-          Openapi3Parser.load(api_spec)
-        end
+        specification.spec
       end
 
       def setup_connection

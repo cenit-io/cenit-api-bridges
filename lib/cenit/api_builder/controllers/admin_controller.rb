@@ -1,5 +1,5 @@
 require 'cenit/api_builder/helpers/admin_helper'
-require 'cenit/api_builder/helpers/api_spec_helper'
+require 'cenit/api_builder/helpers/open_api_spec_helper'
 require 'cenit/api_builder/helpers/bs_apps_helper'
 require 'cenit/api_builder/helpers/ls_apps_helper'
 require 'cenit/api_builder/helpers/bridging_service_helper'
@@ -12,7 +12,7 @@ module Cenit
   module ApiBuilder
     controller do
       include Helpers::AdminHelper
-      include Helpers::ApiSpecHelper
+      include Helpers::OpenApiSpecHelper
       include Helpers::BSAppHelper
       include Helpers::LSAppHelper
       include Helpers::BridgingServiceHelper
