@@ -14,7 +14,14 @@ module Cenit
           }
         end
 
-        def json_data_types_params(action)
+        def parse_from_params_to_selection_json_data_types_criteria
+          exp_term = { '$regex' => ".*#{params[:term]}.*", '$options' => 'i' }
+          terms_conditions = [{ namespace: exp_term }, { name: exp_term }, { title: exp_term }]
+          { '$or' => terms_conditions }
+        end
+
+        def json_data_type_params(action)
+          raise "TODO: The '#{action}' action is still under construction."
         end
       end
     end
