@@ -9,6 +9,7 @@ module Cenit
             target: parse_from_record_to_response_ls_target(record.target),
             active: record.active,
             priority: record.priority,
+            description: record.description,
             application: record.application.try do |app|
               {
                 id: app.id,
@@ -61,15 +62,17 @@ module Cenit
         def local_service_params(action)
           raise('[400] - Service not available') if action != :update
 
-          parameters = params.permit(data: [listen: %i[method path]]).to_h
+          parameters = params.permit(data: [:priority, :description, listen: %i[method path]]).to_h
 
           check_attr_validity(:data, nil, parameters, true, Hash)
 
           data = parameters[:data]
 
-          check_allow_params(%i[listen], data)
+          check_allow_params(%i[listen priority description], data)
           check_allow_params(%i[method path], data[:listen])
 
+          check_attr_validity(:priority, 'data', data, true, Integer)
+          check_attr_validity(:description, 'data', data, true, String)
           check_attr_validity(:method, 'data[listen]', data[:listen], true, String)
           check_attr_validity(:path, 'data[listen]', data[:listen], true, String)
 

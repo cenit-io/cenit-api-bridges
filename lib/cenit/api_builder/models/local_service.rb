@@ -5,6 +5,7 @@ module Cenit
     document_type :LocalService do
       field :priority, type: Integer, default: 0
       field :active, type: Mongoid::Boolean, default: false
+      field :description, type: String
       field :metadata, type: Hash, default: {}
 
       embeds_one :listen, class_name: Service.name, inverse_of: nil

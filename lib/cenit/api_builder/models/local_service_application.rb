@@ -50,22 +50,23 @@ module Cenit
         spec.components.schemas.keys.each do |name|
           next unless eligible_api_schema?(spec.components.schemas[name])
 
-          setup_service(name, "#{name}", 'get', priority)
-          setup_service(name, "#{name}", 'post', priority)
-          setup_service(name, "#{name}/:id", 'get', priority)
-          setup_service(name, "#{name}/:id", 'post', priority)
-          setup_service(name, "#{name}/:id", 'delete', priority)
+          setup_service(name, "#{name}", 'get', priority, 'Get items list')
+          setup_service(name, "#{name}", 'post', priority, 'Create a new item')
+          setup_service(name, "#{name}/:id", 'get', priority, 'Get an item by id')
+          setup_service(name, "#{name}/:id", 'post', priority, 'Update an item')
+          setup_service(name, "#{name}/:id", 'delete', priority, 'Delete an item')
 
           priority += 1
         end
       end
 
-      def setup_service(schema_name, path, method, priority)
+      def setup_service(schema_name, path, method, priority, description)
         service = Cenit::ApiBuilder::LocalService.new(
           priority: priority,
           active: false,
           listen: { method: method, path: path },
           metadata: { schema_name: schema_name },
+          description: description,
           application: self,
         )
         service.save!
