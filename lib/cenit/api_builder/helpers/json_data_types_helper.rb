@@ -9,6 +9,7 @@ module Cenit
             name: record.name,
             title: record.title,
             schema: record.code,
+            records: record.count,
             updated_at: parse_datetime(record.updated_at),
             created_at: parse_datetime(record.created_at),
           }
