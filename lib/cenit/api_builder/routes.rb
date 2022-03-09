@@ -4,7 +4,7 @@ module Cenit
   module ApiBuilder
     controller do
       # Custom actions
-      route :post, '/admin/:model/toggle', to: :toggle_state, model: /^(bs)$/
+      route :put, '/admin/:model/toggle', to: :toggle_state, model: /(bridging|local)_services/
 
       # Common actions
       route :get, '/admin/:model', to: :index
