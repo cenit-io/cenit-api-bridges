@@ -53,7 +53,7 @@ module Cenit
           setup_service(name, "#{name}", 'get', priority, 'Get items list')
           setup_service(name, "#{name}", 'post', priority, 'Create a new item')
           setup_service(name, "#{name}/:id", 'get', priority, 'Get an item by id')
-          setup_service(name, "#{name}/:id", 'post', priority, 'Update an item')
+          setup_service(name, "#{name}/:id", 'put', priority, 'Update an item')
           setup_service(name, "#{name}/:id", 'delete', priority, 'Delete an item')
 
           priority += 1

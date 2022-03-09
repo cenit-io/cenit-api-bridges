@@ -29,6 +29,20 @@ module Cenit
           'listen.method' => self.listen.method,
         }
         errors.add(:listen, 'already exist') unless self.class.where(criteria).first.nil?
+
+        unless new_record?
+          previous = self.class.where(id: self.id).first
+          errors.add(:listen, 'method cannot be changed') unless listen.method == previous.listen.method
+
+          pattern = /\/:id(\/.*)?$/
+          if previous.listen.path =~ pattern && listen.path !~ pattern
+            errors.add(:listen_path, "must have 'id' parameter")
+          end
+
+          if previous.listen.path !~ pattern && listen.path =~ pattern
+            errors.add(:listen_path, "cannot have 'id' parameter")
+          end
+        end
       end
 
       def transform_listen_path
@@ -75,6 +89,32 @@ module Cenit
         end
 
         json_schema
+      end
+
+      def get_embedded_document_changes
+        data = {}
+
+        relations.each do |name, relation|
+          next unless [:embeds_one, :embeds_many].include? relation.macro.to_sym
+
+          # only if changes are present
+          child = send(name.to_sym)
+          next unless child
+          next if child.previous_changes.empty?
+
+          child_data = get_previous_changes_for_model(child)
+          data[name] = child_data
+        end
+
+        data
+      end
+
+      def get_previous_changes_for_model(model)
+        data = {}
+        model.previous_changes.each do |key, change|
+          data[key] = {:from => change[0], :to => change[1]}
+        end
+        data
       end
 
     end
