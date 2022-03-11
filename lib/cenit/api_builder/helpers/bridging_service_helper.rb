@@ -76,6 +76,12 @@ module Cenit
           data[:id] = params[:id]
           data
         end
+
+        def process_bridging_service
+          raise '[400] - This services is under constructions'
+        rescue StandardError => e
+          respond_with_exception(e)
+        end
       end
     end
   end

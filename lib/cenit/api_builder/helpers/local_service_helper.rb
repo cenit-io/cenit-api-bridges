@@ -79,6 +79,42 @@ module Cenit
           data[:id] = params[:id]
           data
         end
+
+        def process_local_service
+          method = request.method.downcase
+          req_a_path = URI.decode(params[:app_listening_path])
+          req_s_path = URI.decode(params[:service_listening_path])
+
+          app = Cenit::ApiBuilder::LocalServiceApplication.where(listening_path: req_a_path).first
+
+          return respond_with_exception('[404] - Application not found') unless app
+
+          services = app.services.where('active' => true, 'listen.method' => method).order_by(priority: 'ASC')
+          service = services.detect { |s| check_service_request(s.listen.path, req_s_path) }
+
+          return respond_with_exception('[404] - Service not found') unless service
+
+          @dt = service.target
+          params.merge(@path_params)
+          params[:model] = 'ls_request'
+
+          if @path_params.has_key?(:id)
+            find_record
+            return nil unless @record
+          end
+
+          method = method.to_sym
+          return create if method == :post
+          return index if method == :get && @record.nil?
+          return show if method == :get
+          return update if method == :put
+          return destroy if method == :delete
+
+          respond_with_exception('[404] - Service not found')
+        rescue StandardError => e
+          respond_with_exception(e)
+        end
+
       end
     end
   end

@@ -36,6 +36,8 @@ module Cenit
 
         def find_authorize_account
           token_type, token = request.headers['Authorization'].to_s.split(' ')
+          token ||= params[:token]
+          token_type ||= 'Bearer'
 
           if access_token = Cenit::OauthAccessToken.where(token_type: token_type.to_s, token: token.to_s).first
             User.current = access_token.user
@@ -50,7 +52,19 @@ module Cenit
         end
 
         def respond_with_exception(ex)
-          msg = ex.is_a?(String) ? ex : ex.message
+          msg = begin
+            case ex
+            when String
+              ex
+            when Mongoid::Errors::MongoidError
+              ex.summary
+            when StandardError
+              ex.message
+            else
+              ex.to_s
+            end
+          end
+
           code = msg =~ /^\[(\d+)\]/ ? $1.to_i : 500
           data = { type: 'exception', error: msg.gsub(/^\[(\d+)\] - /, ''), code: code }
 
@@ -64,7 +78,7 @@ module Cenit
 
           response = begin
             {
-              type: type,
+              type: record.class.data_type.name.underscore,
               data: begin
                 if respond_to?(parse_method = "parse_from_record_to_response_#{type.singularize}")
                   send(parse_method, record)
@@ -90,10 +104,10 @@ module Cenit
 
           response = begin
             if params[:without_data].to_b
-              { type: type, data: [], pagination: { offset: 0, limit: limit, total: total } }
+              { type: dt.name.underscore, data: [], pagination: { offset: 0, limit: limit, total: total } }
             else
               {
-                type: type,
+                type: dt.name.underscore,
                 data: begin
                   dt.where(criteria).order_by(sort).skip(offset).limit(limit).to_a.map do |record|
                     if respond_to?(parse_method = "parse_from_record_to_response_#{type.singularize}")
@@ -218,6 +232,33 @@ module Cenit
             full_name = scope_name ? "#{scope_name}[#{attr}]" : attr
             raise("[400] - The parameter #{full_name} #{ex.message}")
           end
+        end
+
+        def check_service_request(s_listening_path, s_req_path)
+          path_params_names = []
+          path_tokens = s_listening_path.split('/')
+
+          path_tokens.each_with_index do |path_token, idx|
+            if path_token =~ /^:(\w+)/
+              path_params_names << $1.to_sym
+              path_tokens[idx] = '([^/]+)'
+            end
+          end
+
+          path_pattern = /^#{path_tokens.join('/')}$/
+
+          request.body.rewind
+          @payload = request.body.read
+          @path_params = {}.with_indifferent_access
+          @query_params = params[:qs] || {}.with_indifferent_access
+
+          return nil unless match = path_pattern.match(s_req_path)
+
+          path_params_names.each_with_index do |name, idx|
+            @path_params[name] = URI.decode(match[idx + 1].force_encoding('UTF-8'))
+          end
+
+          true
         end
       end
     end

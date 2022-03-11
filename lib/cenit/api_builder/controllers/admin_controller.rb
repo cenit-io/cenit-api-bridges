@@ -23,7 +23,7 @@ module Cenit
       include Helpers::WebHooksHelper
 
       before_action :find_authorize_account, except: %i[cors_check]
-      before_action :find_data_type, except: %i[cors_check]
+      before_action :find_data_type, except: %i[cors_check process_bridging_service process_local_service]
       before_action :find_record, only: %i[show update]
 
       def index
