@@ -18,6 +18,38 @@ module Cenit
       before_save :transform_listen_path
       after_save :setup_target
 
+      def full_path
+        "#{application.listening_path}/#{listen.path}"
+      end
+
+      def parameters
+        items = []
+
+        if listen.path =~ /\/:id(\/.*)?$/
+          items << { name: 'id', in: 'path', description: 'Item Identifier' }
+        elsif listen.method == 'get'
+          items.concat(
+            [
+              { name: 'limit', in: 'query', description: 'The maximum number of items that can be returned. The supported values ​​are between 10 and 100' },
+              { name: 'offset', in: 'query', description: 'Number of items to skip at the beginning of the list' },
+              { name: 'sort', in: 'query', description: 'It allows to sort products list' },
+            ]
+          )
+        end
+
+        items
+      end
+
+      def headers
+        items = [{ name: 'Authorization', description: 'Bearer token of OAuth 2.0' value: "#{Bearer} ***************" }]
+
+        if listen.method =~ /post|put/
+          items << { name: 'Content-Type', description: 'Request content type', value: 'application/json' }
+        end
+
+        items
+      end
+
       protected
 
       def validate_listen_field
@@ -112,7 +144,7 @@ module Cenit
       def get_previous_changes_for_model(model)
         data = {}
         model.previous_changes.each do |key, change|
-          data[key] = {:from => change[0], :to => change[1]}
+          data[key] = { :from => change[0], :to => change[1] }
         end
         data
       end

@@ -2,7 +2,7 @@ module Cenit
   module ApiBuilder
     module Helpers
       module BridgingServiceHelper
-        def parse_from_record_to_response_bridging_service(record)
+        def parse_from_record_to_response_bridging_service(record, with_details = false)
           {
             id: record.id.to_s,
             listen: parse_from_record_to_response_bs_listen(record.listen),

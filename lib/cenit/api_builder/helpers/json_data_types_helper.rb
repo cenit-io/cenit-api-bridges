@@ -2,7 +2,7 @@ module Cenit
   module ApiBuilder
     module Helpers
       module JsonDataTypesHelper
-        def parse_from_record_to_response_json_data_type(record)
+        def parse_from_record_to_response_json_data_type(record, with_details = false)
           {
             id: record.id.to_s,
             namespace: record.namespace,

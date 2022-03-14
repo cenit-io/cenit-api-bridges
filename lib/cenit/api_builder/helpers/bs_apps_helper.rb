@@ -2,7 +2,7 @@ module Cenit
   module ApiBuilder
     module Helpers
       module BSAppHelper
-        def parse_from_record_to_response_bs_app(record)
+        def parse_from_record_to_response_bs_app(record, with_details = false)
           {
             id: record.id.to_s,
             namespace: record.namespace,

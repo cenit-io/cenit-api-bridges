@@ -81,7 +81,7 @@ module Cenit
               type: record.class.data_type.name.underscore,
               data: begin
                 if respond_to?(parse_method = "parse_from_record_to_response_#{type.singularize}")
-                  send(parse_method, record)
+                  send(parse_method, record, true)
                 else
                   record.to_hash(include_id: true).deep_symbolize_keys
                 end
@@ -111,7 +111,7 @@ module Cenit
                 data: begin
                   dt.where(criteria).order_by(sort).skip(offset).limit(limit).to_a.map do |record|
                     if respond_to?(parse_method = "parse_from_record_to_response_#{type.singularize}")
-                      send(parse_method, record)
+                      send(parse_method, record, false)
                     else
                       record.to_hash(include_id: true).deep_symbolize_keys
                     end

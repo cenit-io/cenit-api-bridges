@@ -2,7 +2,7 @@ module Cenit
   module ApiBuilder
     module Helpers
       module WebHooksHelper
-        def parse_from_record_to_response_webhook(record)
+        def parse_from_record_to_response_webhook(record, with_details = false)
           {
             id: record.id.to_s,
             namespace: record.namespace,

@@ -2,7 +2,7 @@ module Cenit
   module ApiBuilder
     module Helpers
       module OpenApiSpecHelper
-        def parse_from_record_to_response_api_spec(record)
+        def parse_from_record_to_response_api_spec(record, with_details = false)
           {
             id: record.id.to_s,
             title: record.title,

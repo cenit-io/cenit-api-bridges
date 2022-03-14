@@ -2,11 +2,11 @@ module Cenit
   module ApiBuilder
     module Helpers
       module LocalServiceHelper
-        def parse_from_record_to_response_local_service(record)
+        def parse_from_record_to_response_local_service(record, with_details = false)
           {
             id: record.id.to_s,
-            listen: parse_from_record_to_response_ls_listen(record.listen),
-            target: parse_from_record_to_response_ls_target(record.target),
+            listen: parse_from_record_to_response_ls_listen(record, with_details),
+            target: parse_from_record_to_response_ls_target(record.target, with_details),
             active: record.active,
             priority: record.priority,
             description: record.description,
@@ -23,20 +23,35 @@ module Cenit
           }
         end
 
-        def parse_from_record_to_response_ls_listen(record)
-          {
-            path: record.path,
-            method: record.method,
+        def parse_from_record_to_response_ls_listen(record, with_details)
+          response = {
+            path: record.listen.path,
+            method: record.listen.method,
           }
+
+          if with_details
+            response.merge!(
+              url: request.url.gsub(/admin.*$/, record.full_path),
+              parameters: record.parameters,
+              headers: record.headers,
+              body: record.listen.method =~ /put|post/ ? record.target.try(:code) : nil
+            )
+          end
+
+          response
         end
 
-        def parse_from_record_to_response_ls_target(record)
+        def parse_from_record_to_response_ls_target(record, with_details)
           return nil unless record
 
-          {
+          response = {
             namespace: record.namespace,
             name: record.name,
           }
+
+          response[:schema] = record.code if with_details
+
+          response
         end
 
         def parse_from_params_to_selection_local_services_criteria
