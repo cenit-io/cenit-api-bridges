@@ -25,14 +25,14 @@ module Cenit
       def parameters
         items = []
 
-        if listen.path =~ /\/:id(\/.*)?$/
+        if listen.path =~ %r{/:id(/.*)?$}
           items << { name: 'id', in: 'path', description: 'Item Identifier' }
         elsif listen.method == 'get'
           items.concat(
             [
               { name: 'limit', in: 'query', description: 'The maximum number of items that can be returned. The supported values ​​are between 10 and 100' },
               { name: 'offset', in: 'query', description: 'Number of items to skip at the beginning of the list' },
-              { name: 'sort', in: 'query', description: 'It allows to sort products list' },
+              { name: 'sort', in: 'query', description: 'It allows to sort products list' }
             ]
           )
         end
@@ -41,7 +41,7 @@ module Cenit
       end
 
       def headers
-        items = [{ name: 'Authorization', description: 'Bearer token of OAuth 2.0', value: "#{Bearer} ***************" }]
+        items = [{ name: 'Authorization', description: 'Bearer token of OAuth 2.0', value: 'Bearer ***************' }]
 
         if listen.method =~ /post|put/
           items << { name: 'Content-Type', description: 'Request content type', value: 'application/json' }
@@ -55,18 +55,18 @@ module Cenit
       def validate_listen_field
         # check unique
         criteria = {
-          'id' => { '$nin' => [self.id.to_s] },
-          'application' => self.application,
-          'listen.path' => self.listen.path,
-          'listen.method' => self.listen.method,
+          'id' => { '$nin' => [id.to_s] },
+          'application' => application,
+          'listen.path' => listen.path,
+          'listen.method' => listen.method
         }
         errors.add(:listen, 'already exist') unless self.class.where(criteria).first.nil?
 
         unless new_record?
-          previous = self.class.where(id: self.id).first
+          previous = self.class.where(id: id).first
           errors.add(:listen, 'method cannot be changed') unless listen.method == previous.listen.method
 
-          pattern = /\/:id(\/.*)?$/
+          pattern = %r{/:id(/.*)?$}
           if previous.listen.path =~ pattern && listen.path !~ pattern
             errors.add(:listen_path, "must have 'id' parameter")
           end
@@ -78,15 +78,15 @@ module Cenit
       end
 
       def transform_listen_path
-        self.listen.path = self.listen.path.gsub(/\{([^\}]+)\}/, ':\1')
+        listen.path = listen.path.gsub(/\{([^}]+)\}/, ':\1')
       end
 
       def setup_target
-        return if self.target.present? || !self.active
+        return if target.present? || !active
 
         dt_name = schema_name_form_api_spec.parameterize.underscore.classify
         dt_data = { namespace: application.namespace, name: dt_name }
-        api_schema = self.application.spec.components.schemas[schema_name_form_api_spec]
+        api_schema = application.spec.components.schemas[schema_name_form_api_spec]
 
         self.target = Setup::JsonDataType.where(dt_data).first || Setup::JsonDataType.create_from_json!(
           dt_data.merge(
@@ -95,11 +95,11 @@ module Cenit
           )
         )
 
-        self.save!
+        save!
       end
 
       def schema_name_form_api_spec
-        self.metadata.deep_symbolize_keys[:schema_name]
+        metadata.deep_symbolize_keys[:schema_name]
       end
 
       def parse_json_schema(api_schema)
@@ -109,10 +109,9 @@ module Cenit
 
         case type.to_sym
         when :object
-          json_schema[:properties] = api_schema.properties.inject({}) do |p_json_schema, p_api_schema|
+          json_schema[:properties] = api_schema.properties.each_with_object({}) do |p_api_schema, p_json_schema|
             name, schema = p_api_schema
             p_json_schema[name] = parse_json_schema(schema)
-            p_json_schema
           end
 
           api_schema.all_of&.each { |schema| json_schema[:properties].merge!(parse_json_schema(schema)[:properties]) }
@@ -127,7 +126,7 @@ module Cenit
         data = {}
 
         relations.each do |name, relation|
-          next unless [:embeds_one, :embeds_many].include? relation.macro.to_sym
+          next unless %i[embeds_one embeds_many].include? relation.macro.to_sym
 
           # only if changes are present
           child = send(name.to_sym)
@@ -144,7 +143,7 @@ module Cenit
       def get_previous_changes_for_model(model)
         data = {}
         model.previous_changes.each do |key, change|
-          data[key] = { :from => change[0], :to => change[1] }
+          data[key] = { from: change[0], to: change[1] }
         end
         data
       end
