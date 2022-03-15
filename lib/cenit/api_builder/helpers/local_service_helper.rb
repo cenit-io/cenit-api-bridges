@@ -34,7 +34,7 @@ module Cenit
               url: request.url.gsub(/admin.*$/, record.full_path),
               parameters: record.parameters,
               headers: record.headers,
-              body: record.listen.method =~ /put|post/ ? record.target.try(:code) : nil
+              body: record.listen.method =~ /put|post/ && record.target ? JSON.parse(record.target.code) : nil
             )
           end
 
