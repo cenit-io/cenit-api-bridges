@@ -110,7 +110,8 @@ module Cenit
           return respond_with_exception('[404] - Service not found') unless service
 
           @dt = service.target
-          params.merge(@path_params)
+          params.merge!(@path_params)
+          params.merge!(@query_params)
           params[:model] = 'ls_request'
 
           if @path_params.has_key?(:id)
@@ -128,6 +129,17 @@ module Cenit
           respond_with_exception('[404] - Service not found')
         rescue StandardError => e
           respond_with_exception(e)
+        end
+
+        def ls_request_params(action)
+          parameters = params.permit(data: {}).to_h
+
+          check_attr_validity(:data, nil, parameters, true, Hash)
+
+          data = parameters[:data]
+
+          data[:id] = params[:id] if action == :update
+          data
         end
 
       end

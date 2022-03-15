@@ -137,7 +137,7 @@ module Cenit
 
         def parse_request_data(model, action)
           method = "#{model.singularize}_params"
-          data = respond_to?(method) ? send(method, action) : params.permit(data: {}).to_h
+          data = respond_to?(method) ? send(method, action) : params.permit(data: {}).to_h[:data]
           options = { primary_field: %i[id], add_only: action == :update }
 
           [data, options]

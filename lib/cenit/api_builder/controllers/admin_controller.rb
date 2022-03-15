@@ -60,7 +60,7 @@ module Cenit
       end
 
       def destroy
-        ids = params[:item_ids]
+        ids = params[:item_ids] || [params[:id]]
         @dt.where(id: { '$in' => ids }).each(&:destroy)
 
         render json: { success: true }
