@@ -7,6 +7,7 @@ require 'cenit/api_builder/helpers/local_service_helper'
 require 'cenit/api_builder/helpers/connections_helper'
 require 'cenit/api_builder/helpers/json_data_types_helper'
 require 'cenit/api_builder/helpers/webhooks_helper'
+require 'cenit/api_builder/helpers/tenants_helper'
 
 module Cenit
   module ApiBuilder
@@ -21,10 +22,11 @@ module Cenit
       include Helpers::ConnectionsHelper
       include Helpers::JsonDataTypesHelper
       include Helpers::WebHooksHelper
+      include Helpers::TenantsHelper
 
       before_action :find_authorize_account, except: %i[cors_check]
       before_action :find_data_type, except: %i[cors_check process_bridging_service process_local_service]
-      before_action :find_record, only: %i[show update]
+      before_action :find_record, only: %i[show update switch_tenant]
 
       def index
         respond_with_records(@dt, params[:model])

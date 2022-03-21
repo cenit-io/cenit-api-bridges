@@ -21,7 +21,9 @@ module Cenit
               Cenit::ApiBuilder::BridgingService
             when :local_services
               Cenit::ApiBuilder::LocalService
-            when :api_spec, :webhooks, :connections, :json_data_types, :authorizations
+            when :tenants
+              Tenant.data_type
+            when :webhooks, :connections, :json_data_types, :authorizations
               Cenit.namespace(:Setup).data_type(params[:model].singularize.classify)
             end
           end
@@ -34,12 +36,20 @@ module Cenit
           respond_with_exception('[404] - Not found') unless @record
         end
 
-        def find_authorize_account
-          token_type, token = request.headers['Authorization'].to_s.split(' ')
-          token ||= params[:token]
-          token_type ||= 'Bearer'
+        def find_access_token
+          @access_token ||= begin
+            token_type, token = request.headers['Authorization'].to_s.split(' ')
+            token ||= params[:token]
+            token_type ||= 'Bearer'
 
-          if access_token = Cenit::OauthAccessToken.where(token_type: token_type.to_s, token: token.to_s).first
+            Cenit::OauthAccessToken.where(token_type: token_type.to_s, token: token.to_s).first
+          end
+
+          @access_token
+        end
+
+        def find_authorize_account
+          if access_token = find_access_token
             User.current = access_token.user
             access_token.set_current_tenant!
           end
