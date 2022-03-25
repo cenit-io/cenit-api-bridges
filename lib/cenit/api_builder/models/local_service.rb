@@ -41,7 +41,9 @@ module Cenit
       end
 
       def headers
-        items = [{ name: 'Authorization', description: 'Bearer token of OAuth 2.0', value: 'Bearer ***************' }]
+        access_token = application.access_token
+        authorization = access_token ? "#{access_token.token_type} #{access_token.token}" : 'Bearer ***************'
+        items = [{ name: 'Authorization', description: 'Bearer token of OAuth 2.0', value: authorization }]
 
         if listen.method =~ /post|put/
           items << { name: 'Content-Type', description: 'Request content type', value: 'application/json' }

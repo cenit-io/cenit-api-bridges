@@ -10,13 +10,7 @@ module Cenit
             active: record.active,
             priority: record.priority,
             description: record.description,
-            application: record.application.try do |app|
-              {
-                id: app.id,
-                namespace: app.namespace,
-                listening_path: app.listening_path,
-              }
-            end,
+            application: parse_from_record_to_response_ls_app(record.application, :ref),
 
             updated_at: parse_datetime(record.updated_at),
             created_at: parse_datetime(record.created_at),

@@ -3,28 +3,36 @@ module Cenit
     module Helpers
       module LSAppHelper
         def parse_from_record_to_response_ls_app(record, with_details = false)
-          {
+          response = {
             id: record.id.to_s,
             namespace: record.namespace,
             listening_path: record.listening_path,
-
-            specification: record.specification.try do |spec|
-              {
-                id: spec.id.to_s,
-                title: spec.title,
-              }
-            end,
-
-            services: record.services.map { |service| parse_from_record_to_response_ls_ref(service) },
-            updated_at: parse_datetime(record.updated_at),
-            created_at: parse_datetime(record.created_at),
           }
+
+          if with_details != :ref
+            response.merge!(
+              access_token: record.access_token,
+
+              specification: record.specification.try do |spec|
+                {
+                  id: spec.id.to_s,
+                  title: spec.title,
+                }
+              end,
+
+              services: record.services.map { |service| parse_from_record_to_response_ls_ref(service) },
+              updated_at: parse_datetime(record.updated_at),
+              created_at: parse_datetime(record.created_at),
+            )
+          end
+
+          response
         end
 
         def parse_from_record_to_response_ls_ref(service)
           {
             id: service.id.to_s,
-            listen: service.listen,
+            listen: parse_from_record_to_response_ls_listen(service, false),
             active: service.active
           }
         end

@@ -1,31 +1,24 @@
 require 'cenit/api_builder/models/open_api_spec'
 require 'cenit/api_builder/models/bridging_service'
+require 'cenit/api_builder/models/common_service_application'
 
 module Cenit
   module ApiBuilder
     document_type :BridgingServiceApplication do
-      field :namespace, type: String
-      field :listening_path, type: String
+      include CommonServiceApplication
+
       field :target_api_base_url, type: String
 
-      belongs_to :specification, class_name: OpenApiSpec.name, inverse_of: nil
       belongs_to :connection, class_name: Setup::Connection.name, inverse_of: nil
 
       has_many :services, class_name: BridgingService.name, inverse_of: :application
 
       validates_presence_of :namespace, :listening_path, :target_api_base_url, :specification
 
-      validates_length_of :namespace, minimum: 3, maximum: 15
-      validates_length_of :listening_path, minimum: 3, maximum: 15
-
-      validates_format_of :namespace, with: /\A[a-z][a-z0-9]*\Z/i
-      validates_format_of :listening_path, with: /\A[a-z0-9]+([_-][a-z0-9]+)*\Z/
       validates_format_of :target_api_base_url, with: /\Ahttp(s)?:\/\/((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([\w-]+\.)+[a-z]{2,3})(:\d+)?(\/.*)*\Z/
 
-      validates_uniqueness_of :listening_path
-
-      after_save :setup_connection, :setup_services
-      before_destroy :destroy_connection, :destroy_services
+      after_save :setup_connection, :setup_access_token, :setup_services
+      before_destroy :destroy_connection
 
       def spec
         specification.spec
@@ -43,6 +36,20 @@ module Cenit
         self.connection.save!
 
         save! if self.connection != current_connection
+      end
+
+      def setup_access_token
+        return unless self.access_token.nil?
+
+        self.access_token = Cenit::OauthAccessToken.for(
+          Cenit::ApiBuilder.app.application_id,
+          Cenit::ApiBuilder::SCOPE,
+          ::User.current,
+          token_span: 0,
+          note: "api-#{listening_path.humanize.parameterize}-token"
+        )
+
+        save!
       end
 
       def setup_services
@@ -72,10 +79,6 @@ module Cenit
 
       def destroy_connection
         connection.try(:destroy)
-      end
-
-      def destroy_services
-        services.each(&:destroy)
       end
     end
   end

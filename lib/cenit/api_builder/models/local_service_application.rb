@@ -1,32 +1,17 @@
 require 'cenit/api_builder/models/open_api_spec'
 require 'cenit/api_builder/models/local_service'
+require 'cenit/api_builder/models/common_service_application'
 
 module Cenit
   module ApiBuilder
     document_type :LocalServiceApplication do
-      field :namespace, type: String
-      field :listening_path, type: String
-
-      belongs_to :specification, class_name: OpenApiSpec.name, inverse_of: nil
+      include CommonServiceApplication
 
       has_many :services, class_name: LocalService.name, inverse_of: :application
 
       validates_presence_of :namespace, :listening_path, :specification
 
-      validates_length_of :namespace, minimum: 3, maximum: 15
-      validates_length_of :listening_path, minimum: 3, maximum: 15
-
-      validates_format_of :namespace, with: /\A[a-z][a-z0-9]*\Z/i
-      validates_format_of :listening_path, with: /\A[a-z0-9]+([_-][a-z0-9]+)*\Z/
-
-      validates_uniqueness_of :listening_path
-
-      after_save :setup_services
-      before_destroy :destroy_services
-
-      def spec
-        specification.spec
-      end
+      after_save :setup_access_token, :setup_services
 
       def eligible_api_schema?(api_schema)
         return false if api_schema.one_of || api_schema.any_of || api_schema.not
@@ -70,10 +55,6 @@ module Cenit
           application: self,
         )
         service.save!
-      end
-
-      def destroy_services
-        services.each(&:destroy)
       end
     end
   end
