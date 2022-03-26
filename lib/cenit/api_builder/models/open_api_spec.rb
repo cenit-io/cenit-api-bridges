@@ -22,7 +22,7 @@ module Cenit
       end
 
       def validate_specification
-        errors.add(:specification, 'in not valid') unless spec.valid?
+        errors.add(:specification, "in not valid, #{spec.errors.map(&:message).uniq.join(', ')}.") unless spec.valid?
       end
 
       def check_apps
