@@ -60,7 +60,7 @@ module Cenit
           end
 
           check_attr_validity(:listening_path, nil, data, true, String)
-          check_attr_validity(:target_api_base_url, nil, data, true, String)
+          check_attr_validity(:target_api_base_url, nil, data, false, String)
 
           data
         end

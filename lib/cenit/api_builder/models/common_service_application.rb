@@ -34,17 +34,17 @@ module Cenit
         access_grant = Cenit::OauthAccessGrant.where(application_id: app_id).first
         Cenit::OauthAccessGrant.new(application_id: app_id, scope: Cenit::ApiBuilder::SCOPE).save! unless access_grant
 
-        self.access_token = Cenit::OauthAccessToken.create(
-          tenant: Tenant.current,
-          application_id: app_id,
-          user_id: ::User.current.id,
-          token_span: 0,
-          data: {
-            note: "#{self.class.name.split('::').last}-#{listening_path.humanize.parameterize}"
-          }
+        self.set(
+          access_token_id: Cenit::OauthAccessToken.create(
+            tenant: Tenant.current,
+            application_id: app_id,
+            user_id: ::User.current.id,
+            token_span: 0,
+            data: {
+              note: "#{self.class.name.split('::').last}-#{listening_path.humanize.parameterize}"
+            }
+          ).id
         )
-
-        save!
       end
 
       def destroy_services
