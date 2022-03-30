@@ -7,8 +7,6 @@ module Cenit
     document_type :BridgingServiceApplication do
       include CommonServiceApplication
 
-      field :target_api_base_url, type: String
-
       belongs_to :connection, class_name: Setup::Connection.name, inverse_of: nil
 
       has_many :services, class_name: BridgingService.name, inverse_of: :application
@@ -19,30 +17,31 @@ module Cenit
         allow_blank: true,
         with: %r{\Ahttp(s)?://((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([\w-]+\.)+[a-z]{2,3})(:\d+)?(/.*)*\Z}
 
-      before_save :setup_target_api_base_url
+      # before_save :setup_target_api_base_url
       after_save :setup_connection, :setup_access_token, :setup_services
       before_destroy :destroy_connection
 
-      def setup_target_api_base_url
-        return unless target_api_base_url.blank?
+      def target_api_base_url
+        get_connection.url
+      end
 
-        self.set(target_api_base_url: spec.servers.first.url)
+      def target_api_base_url=(value)
+        get_connection.update(url: value.blank? ? spec.servers.first.url : value)
+      end
+
+      def get_connection
+        return @conn unless @conn.nil?
+
+        @conn = self.connection || begin
+          criteria = { namespace: namespace, name: 'default_connection' }
+          url = spec.servers.first.try(:url) || 'http://api.demo.io'
+          Setup::Connection.where(criteria).first || Setup::Connection.create_from_json(criteria.merge(url: url))
+        end
       end
 
       def setup_connection
-        return if target_api_base_url == connection.try(:url)
-
-        unless conn = connection
-          self.set(
-            connection_id: begin
-              criteria = { namespace: namespace, name: 'default_connection' }
-              conn = Setup::Connection.where(criteria).first || Setup::Connection.new(criteria)
-              conn.id
-            end
-          )
-        end
-
-        conn.set(url: target_api_base_url)
+        conn_id = get_connection.id
+        self.set(connection_id: conn_id) if connection_id != conn_id
       end
 
       def setup_services
