@@ -48,7 +48,16 @@ module Cenit
           @access_token
         end
 
-        def find_authorize_account
+        def find_authorize_account_by_id
+          if tenant = Tenant.where(id: params[:tenant_id]).first
+            User.current = tenant.owner
+            Cenit::MultiTenancy.tenant_model.current = tenant
+          end
+
+          render json: { error: 'Unauthorized' }, status: 403 if tenant.nil?
+        end
+
+        def find_authorize_account_by_token
           if access_token = find_access_token
             User.current = access_token.user
             access_token.set_current_tenant!
