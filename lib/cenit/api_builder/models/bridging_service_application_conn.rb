@@ -40,20 +40,17 @@ module Cenit
         data[:template_parameters] = []
         data[:authorization] = { id: auth.id, _reference: true } unless auth.nil?
 
-        spec.security.first.try do |scheme|
-          scheme.each do |name, _|
-            security_scheme = spec.components.security_schemes[name]
-            next unless security_scheme.type == 'apiKey'
+        spec.components.security_schemes.each do |_, scheme|
+          next unless scheme.type == 'apiKey'
 
-            tp_name = security_scheme.name.parameterize.underscore
-            item = { key: security_scheme.name, value: "{{#{tp_name}}}" }
+          tp_name = scheme.name.parameterize.underscore
+          item = { key: scheme.name, value: "{{#{tp_name}}}" }
 
-            data[:headers] << item if security_scheme.in == 'header'
-            data[:parameters] << item if security_scheme.in == 'query'
-          end
+          data[:headers] << item if scheme.in == 'header'
+          data[:parameters] << item if scheme.in == 'query'
         end
 
-        Setup::Connection.create_from_json(data)
+        Setup::Connection.create_from_json!(data)
       end
 
       def setup_connection

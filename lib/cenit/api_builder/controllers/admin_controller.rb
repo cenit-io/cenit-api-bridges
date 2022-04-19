@@ -43,19 +43,23 @@ module Cenit
       end
 
       def create
-        data, options = parse_request_data(params[:model], :create)
-        record = @dt.create_from_json!(data, options)
+        data = parse_request_data(params[:model], :create)
+        @record = @dt.create_from_json!(data, { primary_field: %i[id], add_only: false })
 
-        respond_with_record(record, params[:model])
+        if (params[:model].to_sym == :bs_apps)
+          data = parse_request_data(params[:model], :update)
+          fill_from_data(@record, data)
+          @record.save!
+        end
+
+        respond_with_record(@record, params[:model])
       rescue StandardError => e
         respond_with_exception(e)
       end
 
       def update
-        data, options = parse_request_data(params[:model], :update)
-
+        data = parse_request_data(params[:model], :update)
         fill_from_data(@record, data)
-
         @record.save!
 
         respond_with_record(@record, params[:model])
@@ -91,14 +95,11 @@ module Cenit
         fields = []
         spec = @record.spec
 
-        spec.security.first.try do |scheme|
-          scheme.each do |name, _|
-            security_scheme = spec.components.security_schemes[name]
-            next unless security_scheme.type == 'apiKey'
+        spec.components.security_schemes.each do |_, security_scheme|
+          next unless security_scheme.type == 'apiKey'
 
-            tp_name = security_scheme.name.parameterize.underscore
-            fields << { name: tp_name, label: security_scheme.name, description: security_scheme.description }
-          end
+          tp_name = security_scheme.name.parameterize.underscore
+          fields << { name: tp_name, label: security_scheme.name, description: security_scheme.description }
         end
 
         render :authorization_page, layout: 'authorization_layout', locals: { fields: fields }

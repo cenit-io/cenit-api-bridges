@@ -9,6 +9,12 @@ module Cenit
             listening_path: record.listening_path,
             target_api_base_url: record.target_api_base_url,
 
+            authorization_type: record.authorization_type,
+            auth_url: record.auth_url,
+            access_token_url: record.access_token_url,
+            client_id: record.client_id,
+            client_secret: record.client_secret,
+
             specification: record.specification.try do |spec|
               {
                 id: spec.id.to_s,
@@ -39,20 +45,26 @@ module Cenit
         def bs_app_params(action)
           parameters = params.permit(
             data: [
-              :namespace, :listening_path, :target_api_base_url,
-              :specification => [:id]
+              :listening_path, :target_api_base_url,
+              :auth_url, :access_token_url, :client_id, :client_secret,
+              :username, :password,
+              :namespace, :specification => [:id]
             ]
           ).to_h
 
           check_attr_validity(:data, nil, parameters, true, Hash)
 
           data = parameters[:data]
+          allow_params = %i[listening_path target_api_base_url auth_url access_token_url client_id client_secret username password]
 
           if action == :update
-            check_allow_params(%i[listening_path target_api_base_url], data)
+            data.delete(:namespace)
+            data.delete(:specification)
+            check_allow_params(allow_params, data)
             data[:id] = params[:id]
           else
-            check_allow_params(%i[listening_path target_api_base_url namespace specification], data)
+            allow_params += %i[namespace specification]
+            check_allow_params(allow_params, data)
             check_attr_validity(:namespace, nil, data, true, String)
             check_attr_validity(:specification, nil, data, true, Hash)
             check_attr_validity(:id, 'specification', data[:specification], true, String)
@@ -61,6 +73,12 @@ module Cenit
 
           check_attr_validity(:listening_path, nil, data, true, String)
           check_attr_validity(:target_api_base_url, nil, data, false, String)
+          check_attr_validity(:auth_url, nil, data, false, String)
+          check_attr_validity(:access_token_url, nil, data, false, String)
+          check_attr_validity(:client_id, nil, data, false, String)
+          check_attr_validity(:client_secret, nil, data, false, String)
+          check_attr_validity(:username, nil, data, false, String)
+          check_attr_validity(:password, nil, data, false, String)
 
           data
         end

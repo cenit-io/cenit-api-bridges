@@ -30,6 +30,32 @@ module Cenit
         apps = LocalServiceApplication.where(criteria).count + BridgingServiceApplication.where(criteria).count
         raise 'The spec cannot be deleted because it is being used in some applications' if apps != 0
       end
+
+      def find_security_schemes(type)
+        spec.components.security_schemes.detect { |_, v| v.type == type.to_s }.last
+      end
+
+      def default_options
+        data = {
+          target_api_base_url: spec.servers.first.try(:url) || 'http://api.demo.io',
+          authorization_type: :none
+        }
+
+        if security_scheme = find_security_schemes(:oauth2)
+          options = security_scheme.flows.authorization_code
+          data.merge!(
+            authorization_type: :oauth2,
+            auth_url: options.authorization_url,
+            access_token_url: options.token_url,
+            client_id: '',
+            client_secret: '',
+          )
+        elsif find_security_schemes(:http)
+          data.merge!(authorization_type: :basic)
+        elsif find_security_schemes(:apiKey)
+          data.merge!(:callback)
+        end
+      end
     end
   end
 end

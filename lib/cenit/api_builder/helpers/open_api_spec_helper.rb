@@ -8,6 +8,7 @@ module Cenit
             title: record.title,
             version: record.spec.info.version,
             specification: record.specification,
+            default_options: record.default_options,
             updated_at: parse_datetime(record.updated_at),
             created_at: parse_datetime(record.created_at),
           }

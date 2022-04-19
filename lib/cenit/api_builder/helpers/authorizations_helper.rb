@@ -8,12 +8,17 @@ module Cenit
             namespace: record.namespace,
             name: record.name,
             type: record._type.split('::').last.underscore,
-            template_parameters: record.template_parameters.map { |item| { key: item.key, value: item.value } },
+            template_parameters: parse_from_record_to_response_authorization_tps(record),
             authorized: record.authorized,
             url: "#{Cenit.homepage}/authorization/#{Tenant.current.id}/#{record.id}/authorize",
             updated_at: parse_datetime(record.updated_at),
             created_at: parse_datetime(record.created_at),
           }
+        end
+
+        def parse_from_record_to_response_authorization_tps(record)
+          return nil unless record.respond_to?(:template_parameters)
+          record.template_parameters.map { |item| { key: item.key, value: item.value } }
         end
 
         def authorizations_params(action)
