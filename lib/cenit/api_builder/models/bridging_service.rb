@@ -18,6 +18,38 @@ module Cenit
       before_destroy :destroy_target
       after_save :setup_target
 
+      def full_path
+        "#{application.listening_path}/#{listen.path}"
+      end
+
+      def parameters
+        items = []
+
+        if listen.path =~ %r{/:id(/.*)?$}
+          items << { name: 'id', in: 'path', description: 'Item Identifier' }
+        end
+
+        meta_data = target ? target.metadata : {}
+        service_parameters = meta_data.deep_symbolize_keys[:service_parameters] || []
+        items += (service_parameters.select { |p| p[:in] =~ /path|query/ })
+
+        items
+      end
+
+      def headers
+        access_token = application.access_token
+        authorization = access_token ? "#{access_token.token_type} #{access_token.token}" : 'Bearer ***************'
+        items = [{ name: 'Authorization', description: 'Bearer token of OAuth 2.0', value: authorization }]
+
+        if listen.method =~ /post|put/
+          items << { name: 'Content-Type', description: 'Request content type', value: 'application/json' }
+        end
+
+        items
+      end
+
+      protected
+
       def validate_listen_field
         # check unique
         criteria = {
@@ -72,19 +104,31 @@ module Cenit
 
       def parse_webhook_parameters(service_spec)
         service_spec.parameters.select { |p| p.in == 'query' }.map do |p|
-          { key: p.name, value: "{{#{p.name}}}" }
+          {
+            key: p.name,
+            value: "{{#{p.name}}}",
+            description: p.description
+          }
         end
       end
 
       def parse_webhook_template_parameters(service_spec)
         service_spec.parameters.map do |p|
-          { key: p.name, value: p.schema.example ? JSON.generate(p.schema.example) : '' }
+          {
+            key: p.name,
+            value: p.schema.example ? JSON.generate(p.schema.example) : '',
+            description: p.description
+          }
         end
       end
 
       def parse_webhook_headers(service_spec)
         service_spec.parameters.select { |p| p.in == 'header' }.map do |p|
-          { key: p.name, value: "{{#{p.name}}}" }
+          {
+            key: p.name,
+            value: "{{#{p.name}}}",
+            description: p.description
+          }
         end
       end
 

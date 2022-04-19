@@ -5,8 +5,8 @@ module Cenit
         def parse_from_record_to_response_bridging_service(record, with_details = false)
           {
             id: record.id.to_s,
-            listen: parse_from_record_to_response_bs_listen(record.listen),
-            target: parse_from_record_to_response_bs_target(record.target),
+            listen: parse_from_record_to_response_bs_listen(record, with_details),
+            target: parse_from_record_to_response_bs_target(record, with_details),
             active: record.active,
             priority: record.priority,
             application: record.application.try do |app|
@@ -22,20 +22,39 @@ module Cenit
           }
         end
 
-        def parse_from_record_to_response_bs_listen(record)
-          {
-            path: record.path,
-            method: record.method,
+        def parse_from_record_to_response_bs_listen(record, with_details)
+          response = {
+            path: record.listen.path,
+            method: record.listen.method,
           }
+
+          if with_details
+            response.merge!(
+              url: request.url.gsub(/admin.*$/, record.full_path),
+              parameters: record.parameters,
+              headers: record.headers,
+            # body: record.listen.method =~ /put|post/ && record.target ? JSON.parse(record.target.code) : nil
+            )
+          end
+
+          response
         end
 
-        def parse_from_record_to_response_bs_target(record)
-          return nil unless record
+        def parse_from_record_to_response_bs_target(record, with_details)
+          return nil unless target = record.target
 
-          {
-            path: record.path,
-            method: record.method,
+          response = {
+            path: target.path,
+            method: target.method,
           }
+
+          if with_details
+            response[:headers] = target.headers.map { |p| { key: p.key, value: p.value, description: p.description } }
+            response[:parameters] = target.parameters.map { |p| { key: p.key, value: p.value, description: p.description } }
+            response[:template_parameters] = target.template_parameters.map { |p| { key: p.key, value: p.value, description: p.description } }
+          end
+
+          response
         end
 
         def parse_from_params_to_selection_bridging_services_criteria
