@@ -30,6 +30,7 @@ module Cenit
           check_allow_params(%i[name url], data)
           check_attr_validity(:name, nil, data, true, /^[a-z0-9]+(_[a-z0-9]+)*$/)
           check_attr_validity(:url, nil, data, true, /^http(s)?:\/\/([\w-]+\.)+[a-z]{2,3}(\/.*)*$/)
+          check_attr_validity(:headers, nil, data, true, Array)
 
           data
         end
