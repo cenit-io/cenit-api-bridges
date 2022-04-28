@@ -49,11 +49,18 @@ module Cenit
             access_token_url: options.token_url,
             client_id: '',
             client_secret: '',
+            scopes: options.scopes.values.join(','),
           )
         elsif find_security_schemes(:http)
-          data.merge!(authorization_type: :basic)
+          data.merge!(
+            authorization_type: :basic,
+            username: '',
+            password: '',
+          )
         elsif find_security_schemes(:apiKey)
-          data.merge!(:callback)
+          data.merge!(
+            authorization_type: :basic,
+          )
         end
       end
     end

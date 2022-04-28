@@ -90,6 +90,22 @@ module Cenit
         client.update(secret: value)
       end
 
+      def scopes
+        auth = get_authorization
+        return nil unless auth
+
+        tp = auth.template_parameters.detect { |tp| tp.key == 'scopes' }
+        tp ? tp.value : ''
+      end
+
+      def scopes=(value)
+        auth = get_authorization
+        return nil unless auth
+
+        tp = auth.template_parameters.detect { |tp| tp.key == 'scopes' }
+        tp.update(value: value)
+      end
+
       private
 
       def find_security_schemes(type)

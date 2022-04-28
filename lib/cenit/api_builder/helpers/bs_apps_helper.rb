@@ -14,6 +14,7 @@ module Cenit
             access_token_url: record.access_token_url,
             client_id: record.client_id,
             client_secret: record.client_secret,
+            scopes: record.scopes,
 
             specification: record.specification.try do |spec|
               {
@@ -46,7 +47,7 @@ module Cenit
           parameters = params.permit(
             data: [
               :listening_path, :target_api_base_url,
-              :auth_url, :access_token_url, :client_id, :client_secret,
+              :auth_url, :access_token_url, :client_id, :client_secret, :scopes,
               :username, :password,
               :namespace, :specification => [:id]
             ]
@@ -55,7 +56,7 @@ module Cenit
           check_attr_validity(:data, nil, parameters, true, Hash)
 
           data = parameters[:data]
-          allow_params = %i[listening_path target_api_base_url auth_url access_token_url client_id client_secret username password]
+          allow_params = %i[listening_path target_api_base_url auth_url access_token_url client_id client_secret scopes username password]
 
           if action == :update
             data.delete(:namespace)
@@ -77,6 +78,7 @@ module Cenit
           check_attr_validity(:access_token_url, nil, data, false, String)
           check_attr_validity(:client_id, nil, data, false, String)
           check_attr_validity(:client_secret, nil, data, false, String)
+          check_attr_validity(:scopes, nil, data, false, String)
           check_attr_validity(:username, nil, data, false, String)
           check_attr_validity(:password, nil, data, false, String)
 
