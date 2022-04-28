@@ -21,7 +21,7 @@ module Cenit
           record.template_parameters.map { |item| { key: item.key, value: item.value } }
         end
 
-        def authorizations_params(action)
+        def authorization_params(action)
           raise('[400] - Service not available') if action != :update
 
           parameters = params.permit(data: {}).to_h

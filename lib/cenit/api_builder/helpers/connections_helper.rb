@@ -17,7 +17,7 @@ module Cenit
           }
         end
 
-        def connections_params(action)
+        def connection_params(action)
           raise('[400] - Service not available') if action != :update
 
           parameters = params.permit(data: {}).to_h
