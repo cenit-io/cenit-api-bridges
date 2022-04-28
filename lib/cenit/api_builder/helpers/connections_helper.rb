@@ -26,13 +26,14 @@ module Cenit
 
           data = parameters[:data]
 
-          check_allow_params(%i[name url headers parameters], data)
+          check_allow_params(%i[name url headers parameters template_parameters], data)
           data[:id] = params[:id]
 
           check_attr_validity(:name, nil, data, true, /^[a-z0-9]+(_[a-z0-9]+)*$/)
-          check_attr_validity(:url, nil, data, true, /^http(s)?:\/\/([\w-]+\.)+[a-z]{2,3}(\/.*)*$/)
-          check_attr_validity(:headers, nil, data, true, Array)
-          check_attr_validity(:parameters, nil, data, true, Array)
+          check_attr_validity(:url, nil, data, true, /^http(s)?:\/\/((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}|([\w-]+\.)+[a-z]{2,3})(:\d+)?(\/.*)*$/)
+          check_attr_validity(:headers, nil, data, false, Array)
+          check_attr_validity(:parameters, nil, data, false, Array)
+          check_attr_validity(:template_parameters, nil, data, false, Array)
 
           data
         end
