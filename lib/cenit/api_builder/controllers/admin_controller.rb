@@ -59,7 +59,7 @@ module Cenit
 
       def update
         data = parse_request_data(params[:model], :update)
-        @dt.name =~ /^Cenit::ApiBuilder/ ? fill_from_data(@record, data) : record.from_json(data, { reset: true });
+        @dt.name =~ /^Cenit::ApiBuilder/ ? fill_from_data(@record, data) : @record.from_json(data, { reset: true });
         @record.save!
 
         respond_with_record(@record, params[:model])
