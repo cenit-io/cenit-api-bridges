@@ -8,7 +8,7 @@ module Cenit
       field :description, type: String
       field :metadata, type: Hash, default: {}
 
-      embeds_one :listen, class_name: Service.name, inverse_of: nil
+      embeds_one :listen, class_name: Service.name, inverse_of: :local_service
       belongs_to :target, class_name: Setup::JsonDataType.name, inverse_of: nil
       belongs_to :application, class_name: 'Cenit::ApiBuilder::LocalServiceApplication', inverse_of: :services
 

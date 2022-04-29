@@ -7,7 +7,7 @@ module Cenit
       field :active, type: Mongoid::Boolean, default: false
       field :metadata, type: Hash, default: {}
 
-      embeds_one :listen, class_name: Service.name, inverse_of: nil
+      embeds_one :listen, class_name: Service.name, inverse_of: :bridging_service
       belongs_to :target, class_name: Setup::PlainWebhook.name, inverse_of: nil
       belongs_to :application, class_name: 'Cenit::ApiBuilder::BridgingServiceApplication', inverse_of: :services
 

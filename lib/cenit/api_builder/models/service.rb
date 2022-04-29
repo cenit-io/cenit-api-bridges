@@ -4,8 +4,10 @@ module Cenit
       field :method, type: String
       field :path, type: String
 
+      embedded_in :bridging_service, class_name: 'Cenit::ApiBuilder::BridgingService', inverse_of: :linten
+      embedded_in :local_service, class_name: 'Cenit::ApiBuilder::BridgingService', inverse_of: :linten
+
       validates_presence_of :method, :path
-      validates_uniqueness_of :path, scope: :method
 
       def method_enum
         %w[get post put delete]
