@@ -8,7 +8,7 @@ module Cenit
             namespace: record.namespace,
             listening_path: record.listening_path,
             target_api_base_url: record.target_api_base_url,
-
+            connection: { id: record.connection.id.to_s, name: record.connection.name },
             authorization_type: record.authorization_type,
             auth_url: record.auth_url,
             access_token_url: record.access_token_url,

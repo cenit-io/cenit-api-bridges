@@ -11,7 +11,7 @@ module Cenit
             priority: record.priority,
             application: record.application.try do |app|
               {
-                id: app.id,
+                id: app.id.to_s,
                 namespace: app.namespace,
                 listening_path: app.listening_path,
               }
