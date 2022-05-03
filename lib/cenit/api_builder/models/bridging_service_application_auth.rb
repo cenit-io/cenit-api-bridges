@@ -5,6 +5,12 @@ module Cenit
 
       included do
         delegate :authorization, to: :connection, allow_nil: true
+
+        field :auth_url, type: String
+        field :access_token_url, type: String
+        field :client_id, type: String
+        field :client_secret, type: String
+        field :scopes, type: String
       end
 
       def get_authorization
@@ -113,6 +119,8 @@ module Cenit
       end
 
       def create_default_authorization
+        return nil if spec.nil?
+
         return authorization unless authorization.nil?
 
         if security_scheme = find_security_schemes(:oauth2)

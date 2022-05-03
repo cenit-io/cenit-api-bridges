@@ -25,7 +25,7 @@ module Cenit
       end
 
       def spec
-        specification.spec
+        specification&.spec
       end
 
       def setup_access_token

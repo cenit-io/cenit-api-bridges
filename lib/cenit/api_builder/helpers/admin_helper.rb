@@ -160,12 +160,10 @@ module Cenit
         end
 
         def fill_from_data(record, data)
-          return data unless data.is_a?(Hash)
-          data.each do |k, v|
-            value = record[k].nil? ? v : fill_from_data(record[k], v)
-            if record[k].nil? || !value.is_a?(Hash)
-              record.respond_to?("#{k}=") ? record.send("#{k}=", value) : record[k] = value
-            end
+          if respond_to?(fill_method = "fill_#{params[:model].singularize}_from_data")
+            send(fill_method, record, data)
+          else
+            record.from_json(data, { reset: true })
           end
         end
 

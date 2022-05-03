@@ -45,6 +45,10 @@ module Cenit
         )
         service.save
       end
+
+      def schema
+        1+1
+      end
     end
   end
 end

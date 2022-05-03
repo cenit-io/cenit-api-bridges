@@ -2,7 +2,7 @@ module Cenit
   module ApiBuilder
     module Helpers
       module BSAppHelper
-        def parse_from_record_to_response_bs_app(record, with_details = false)
+        def parse_from_record_to_response_bs_app(record, _with_details = false)
           {
             id: record.id.to_s,
             namespace: record.namespace,
@@ -15,17 +15,10 @@ module Cenit
             client_id: record.client_id,
             client_secret: record.client_secret,
             scopes: record.scopes,
-
-            specification: record.specification.try do |spec|
-              {
-                id: spec.id.to_s,
-                title: spec.title,
-              }
-            end,
-
+            specification: record.specification.try { |spec| { id: spec.id.to_s, title: spec.title } },
             services: record.services.map { |service| parse_from_record_to_response_bs_ref(service) },
             updated_at: parse_datetime(record.updated_at),
-            created_at: parse_datetime(record.created_at),
+            created_at: parse_datetime(record.created_at)
           }
         end
 
@@ -43,15 +36,12 @@ module Cenit
           { '$and' => [{ '$or' => terms_conditions }] }
         end
 
+        def fill_bs_app_from_data(record, data)
+          record.from_json(data, { add_only: true })
+        end
+
         def bs_app_params(action)
-          parameters = params.permit(
-            data: [
-              :listening_path, :target_api_base_url,
-              :auth_url, :access_token_url, :client_id, :client_secret, :scopes,
-              :username, :password,
-              :namespace, :specification => [:id]
-            ]
-          ).to_h
+          parameters = params.permit(data: {}).to_h
 
           check_attr_validity(:data, nil, parameters, true, Hash)
 
@@ -62,7 +52,7 @@ module Cenit
             data.delete(:namespace)
             data.delete(:specification)
             check_allow_params(allow_params, data)
-            data[:id] = params[:id]
+            data[:id] = @record.id
           else
             allow_params += %i[namespace specification]
             check_allow_params(allow_params, data)

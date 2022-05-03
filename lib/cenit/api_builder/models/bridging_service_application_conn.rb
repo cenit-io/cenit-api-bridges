@@ -6,6 +6,8 @@ module Cenit
       included do
         belongs_to :connection, class_name: Setup::Connection.name, inverse_of: nil
 
+        field :target_api_base_url, type: String
+
         after_save :setup_connection
         before_destroy :destroy_authorization, :destroy_connection
       end
@@ -19,19 +21,21 @@ module Cenit
       end
 
       def target_api_base_url=(value)
-        get_connection.update(url: value.blank? ? spec.servers.first.url : value)
+        get_connection&.update(url: value.blank? ? spec.servers.first.url : value)
       end
 
       def get_connection
         return @conn unless @conn.nil?
 
-        @conn = self.connection || begin
+        @conn = self.connection ||= begin
           criteria = { namespace: namespace, name: 'default_connection' }
           Setup::Connection.where(criteria).first || create_default_connection(criteria)
         end
       end
 
       def create_default_connection(data)
+        return nil if spec.nil?
+
         auth = get_authorization
 
         data[:url] = spec.servers.first.try(:url) || 'http://api.demo.io'

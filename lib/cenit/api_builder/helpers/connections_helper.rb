@@ -17,6 +17,10 @@ module Cenit
           }
         end
 
+        def fill_connection_from_data(record, data)
+          record.from_json(data, { reset: true })
+        end
+
         def connection_params(action)
           raise('[400] - Service not available') if action != :update
 
