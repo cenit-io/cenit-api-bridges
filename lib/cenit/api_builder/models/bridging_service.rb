@@ -19,7 +19,7 @@ module Cenit
       after_save :setup_target
 
       def full_path
-        "#{application.listening_path}/#{listen.path}"
+        "#{application.listening_path}/#{listen.path}".gsub('//', '')
       end
 
       def parameters
@@ -29,9 +29,13 @@ module Cenit
           items << { name: 'id', in: 'path', description: 'Item Identifier' }
         end
 
-        meta_data = target ? target.metadata : {}
-        service_parameters = meta_data.deep_symbolize_keys[:service_parameters] || []
-        items += (service_parameters.select { |p| p[:in] =~ /path|query/ })
+        target&.template_parameters&.each do |tp|
+          items << { name: tp.key, in: 'query', description: tp.description, value: tp.value }
+        end
+
+        # meta_data = target ? target.metadata : {}
+        # service_parameters = meta_data.deep_symbolize_keys[:service_parameters] || []
+        # items += (service_parameters.select { |p| p[:in] =~ /path|query/ })
 
         items
       end

@@ -80,19 +80,24 @@ module Cenit
         def bridging_service_params(action)
           raise('[400] - Service not available') if action != :update
 
-          parameters = params.permit(data: [listen: %i[method path]]).to_h
+          parameters = params.permit(data: {}).to_h
 
           check_attr_validity(:data, nil, parameters, true, Hash)
 
           data = parameters[:data]
 
-          check_allow_params(%i[listen], data)
+          check_allow_params(%i[listen target], data)
           check_allow_params(%i[method path], data[:listen])
+          check_allow_params(%i[headers parameters template_parameters], data[:target])
 
           check_attr_validity(:method, 'data[listen]', data[:listen], true, String)
           check_attr_validity(:path, 'data[listen]', data[:listen], true, String)
+          check_attr_validity(:headers, 'data[target]', data[:target], false, Array)
+          check_attr_validity(:parameters, 'data[target]', data[:target], false, Array)
+          check_attr_validity(:template_parameters, 'data[target]', data[:target], false, Array)
 
           data[:id] = params[:id]
+          data[:target][:id] = @record.target.id
           data
         end
 
