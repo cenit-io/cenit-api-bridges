@@ -9,9 +9,9 @@ module Cenit
             locked: record.locked,
             notification_level: record.notification_level,
             owner: {
-              id: record.owner.id.to_s,
-              name: record.owner.name,
-              email: record.owner.email,
+              id: record.owner&.id.to_s,
+              name: record.owner&.name,
+              email: record.owner&.email,
             },
             updated_at: parse_datetime(record.updated_at),
             created_at: parse_datetime(record.created_at),
