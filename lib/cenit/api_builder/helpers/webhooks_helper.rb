@@ -25,7 +25,25 @@ module Cenit
         end
 
         def webhook_params(action)
-          raise "TODO: The '#{action}' action is still under construction."
+          raise('[400] - Service not available') if action != :update
+
+          parameters = params.permit(data: {}).to_h
+
+          check_attr_validity(:data, nil, parameters, true, Hash)
+
+          data = parameters[:data]
+
+          check_allow_params(%i[name description headers parameters template_parameters], data)
+
+          data[:id] = params[:id]
+
+          check_attr_validity(:name, nil, data, true, /^[a-z0-9]+(_[a-z0-9]+)*$/)
+          check_attr_validity(:description, nil, data, true, String)
+          check_attr_validity(:headers, nil, data, false, Array)
+          check_attr_validity(:parameters, nil, data, false, Array)
+          check_attr_validity(:template_parameters, nil, data, false, Array)
+
+          data
         end
       end
     end
