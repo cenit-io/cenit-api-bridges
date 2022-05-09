@@ -8,6 +8,7 @@ module Cenit
       embedded_in :local_service, class_name: 'Cenit::ApiBuilder::BridgingService', inverse_of: :linten
 
       validates_presence_of :method, :path
+      validates_format_of :path, with: /\A\/?:?\w+[\w_-]*(\/:?\w+[\w_-]*)*\Z/i
 
       def method_enum
         %w[get post put delete]

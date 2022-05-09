@@ -66,7 +66,7 @@ module Cenit
       end
 
       def transform_listen_path
-        listen.path = listen.path.gsub(/\{([^\}]+)\}/, ':\1')
+        listen.path = listen.path.gsub(/\{([^}]+)\}/, ':\1')
       end
 
       def setup_target()
