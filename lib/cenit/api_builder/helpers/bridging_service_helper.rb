@@ -102,7 +102,29 @@ module Cenit
         end
 
         def process_bridging_service
-          raise '[400] - This services is under constructions'
+          method = request.method.downcase
+          req_a_path = URI.decode(params[:app_listening_path])
+          req_s_path = URI.decode(params[:service_listening_path])
+
+          app = Cenit::ApiBuilder::BridgingServiceApplication.where(listening_path: req_a_path).first
+
+          return respond_with_exception('[404] - Application not found') unless app
+
+          services = app.services.where('active' => true, 'listen.method' => method).order_by(priority: 'ASC')
+          service = services.detect { |s| check_service_request(s.listen.path, req_s_path) }
+
+          return respond_with_exception('[404] - Service not found') unless service
+
+          webhook = service.target
+          conn = app.connection
+          tps = {}.merge(@query_params).merge(@path_params)
+
+          response, code = webhook.with(conn).submit!(template_parameters: tps) do |response|
+            res = JSON.parse(response.body, symbolize_names: true) rescue response.body
+            [res, response.code]
+          end
+
+          render json: { type: 'bridge-service', service: service.id.to_s, data: response }, status: code
         rescue StandardError => e
           respond_with_exception(e)
         end
