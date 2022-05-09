@@ -39,7 +39,7 @@ module Cenit
         service = Cenit::ApiBuilder::BridgingService.new(
           priority: priority,
           active: false,
-          listen: { method: method, path: path },
+          listen: { method: method, path: path.split('/').map { |x| x.parameterize.underscore }.join('/') },
           metadata: { path: path, method: method },
           application: self
         )
@@ -47,7 +47,7 @@ module Cenit
       end
 
       def schema
-        1+1
+        1 + 1
       end
     end
   end
