@@ -19,7 +19,7 @@ module Cenit
       after_save :setup_target
 
       def full_path
-        "ls/#{application.listening_path}/#{listen.path}".gsub('//', '')
+        "ls/#{application.listening_path}/#{listen.path}".gsub('//', '/')
       end
 
       def parameters
