@@ -254,6 +254,8 @@ module Cenit
         end
 
         def check_service_request(s_listening_path, s_req_path)
+          s_listening_path.gsub!(/^\//, '')
+          s_req_path.gsub!(/^\//, '')
           path_params_names = []
           path_tokens = s_listening_path.split('/')
 
