@@ -35,9 +35,7 @@ module Cenit
         auth = get_authorization
         return 'none' unless auth
 
-        return 'oauth2' if auth.is_a?(Setup::Oauth2Authorization)
-        return 'basic' if auth.is_a?(Setup::BasicAuthorization)
-        return 'callback' if auth.is_a?(Setup::GenericAuthorizationProvider)
+        auth._type.split('::').last.underscore
       end
 
       def auth_url

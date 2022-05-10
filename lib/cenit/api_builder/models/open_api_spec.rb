@@ -44,7 +44,7 @@ module Cenit
         if security_scheme = find_security_schemes(:oauth2)
           options = security_scheme.flows.authorization_code
           data.merge!(
-            authorization_type: :oauth2,
+            authorization_type: :oauth2_authorization,
             auth_url: options.authorization_url,
             access_token_url: options.token_url,
             client_id: '',
@@ -53,13 +53,13 @@ module Cenit
           )
         elsif find_security_schemes(:http)
           data.merge!(
-            authorization_type: :basic,
+            authorization_type: :basic_authorization,
             username: '',
             password: '',
           )
         elsif find_security_schemes(:apiKey)
           data.merge!(
-            authorization_type: :basic,
+            authorization_type: :basic_authorization,
           )
         end
       end
