@@ -3,23 +3,27 @@ module Cenit
     module Helpers
       module BSAppHelper
         def parse_from_record_to_response_bs_app(record, _with_details = false)
-          {
+          data = {
             id: record.id.to_s,
             namespace: record.namespace,
             listening_path: record.listening_path,
             target_api_base_url: record.target_api_base_url,
             connection: { id: record.connection.id.to_s, name: record.connection.name },
             authorization_type: record.authorization_type,
+
             auth_url: record.auth_url,
             access_token_url: record.access_token_url,
             client_id: record.client_id,
             client_secret: record.client_secret,
             scopes: record.scopes,
+
             specification: record.specification.try { |spec| { id: spec.id.to_s, title: spec.title } },
             services: record.services.map { |service| parse_from_record_to_response_bs_ref(service) },
             updated_at: parse_datetime(record.updated_at),
             created_at: parse_datetime(record.created_at)
           }
+
+          data
         end
 
         def parse_from_record_to_response_bs_ref(service)
@@ -64,11 +68,13 @@ module Cenit
 
           check_attr_validity(:listening_path, nil, data, true, String)
           check_attr_validity(:target_api_base_url, nil, data, false, String)
+
           check_attr_validity(:auth_url, nil, data, false, String)
           check_attr_validity(:access_token_url, nil, data, false, String)
           check_attr_validity(:client_id, nil, data, false, String)
           check_attr_validity(:client_secret, nil, data, false, String)
           check_attr_validity(:scopes, nil, data, false, String)
+
           check_attr_validity(:username, nil, data, false, String)
           check_attr_validity(:password, nil, data, false, String)
 

@@ -3,7 +3,7 @@
 module Cenit
   module ApiBuilder
     CREATE_CONSTRAIN = /api_spec|bs_apps|ls_apps/
-    UPDATE_CONSTRAIN = /api_spec|bridging_services|local_services|bs_apps|ls_apps|connections|json_data_type|webhooks/
+    UPDATE_CONSTRAIN = /api_spec|bridging_services|local_services|bs_apps|ls_apps|connections|json_data_type|webhooks|authorizations/
     DELETE_CONSTRAIN = /api_spec|bs_apps|ls_apps|json_data_type|webhooks/
     TOGGLE_CONSTRAIN = /bridging_services|local_services/
 
