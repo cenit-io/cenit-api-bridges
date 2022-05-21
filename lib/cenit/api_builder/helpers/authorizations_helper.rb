@@ -59,8 +59,9 @@ module Cenit
             record.from_json(item, ignore: %i[client], reset: true)
             record.save!
           when :basic_authorization
-            record.username = data[:username]
-            record.password = data[:password]
+            item = { username: data[:username], password: data[:password] }
+            record.from_json(item, reset: true)
+            record.save!
           end
         end
 

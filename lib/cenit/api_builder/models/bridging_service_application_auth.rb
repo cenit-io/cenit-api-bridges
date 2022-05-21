@@ -5,12 +5,6 @@ module Cenit
 
       included do
         delegate :authorization, to: :connection, allow_nil: true
-
-        field :auth_url, type: String
-        field :access_token_url, type: String
-        field :client_id, type: String
-        field :client_secret, type: String
-        field :scopes, type: String
       end
 
       def get_authorization
@@ -18,16 +12,8 @@ module Cenit
 
         @auth = self.authorization || begin
           criteria = { namespace: namespace, name: 'default_authorization' }
-          Setup::Authorization.where(criteria).first || create_default_authorization
-        end
-      end
-
-      def get_authorization_client
-        return @client unless @client.nil?
-
-        @client = begin
-          auth = get_authorization
-          auth && auth.respond_to?(:client) ? auth.client : nil
+          self.connection.authorization = Setup::Authorization.where(criteria).first || create_default_authorization
+          self.connection.save!
         end
       end
 
@@ -36,78 +22,6 @@ module Cenit
         return 'none' unless auth
 
         auth._type.split('::').last.underscore
-      end
-
-      def auth_url
-        client = get_authorization_client
-        return nil unless client
-
-        client.provider.authorization_endpoint
-      end
-
-      def auth_url=(value)
-        client = get_authorization_client
-        return nil unless client
-
-        client.provider.update(authorization_endpoint: value)
-      end
-
-      def access_token_url
-        client = get_authorization_client
-        return nil unless client
-
-        client.provider.token_endpoint
-      end
-
-      def access_token_url=(value)
-        client = get_authorization_client
-        return nil unless client
-
-        client.provider.update(token_endpoint: value)
-      end
-
-      def client_id
-        client = get_authorization_client
-        return nil unless client && client.respond_to?(:identifier)
-
-        client.identifier
-      end
-
-      def client_id=(value)
-        client = get_authorization_client
-        return nil unless client && client.respond_to?(:identifier)
-
-        client.update(identifier: value)
-      end
-
-      def client_secret
-        client = get_authorization_client
-        return nil unless client && client.respond_to?(:secret)
-
-        client.secret
-      end
-
-      def client_secret=(value)
-        client = get_authorization_client
-        return nil unless client && client.respond_to?(:secret)
-
-        client.update(secret: value)
-      end
-
-      def scopes
-        auth = get_authorization
-        return nil unless auth
-
-        tp = auth.template_parameters.detect { |tp| tp.key == 'scopes' }
-        tp ? tp.value : ''
-      end
-
-      def scopes=(value)
-        auth = get_authorization
-        return nil unless auth
-
-        tp = auth.template_parameters.detect { |tp| tp.key == 'scopes' }
-        tp.update(value: value)
       end
 
       private
