@@ -30,12 +30,8 @@ module Cenit
         end
 
         target&.template_parameters&.each do |tp|
-          items << { name: tp.key, in: 'query', description: tp.description, value: tp.value }
+          items << { name: "qs[#{tp.key}]", in: 'query', description: tp.description, value: tp.value }
         end
-
-        # meta_data = target ? target.metadata : {}
-        # service_parameters = meta_data.deep_symbolize_keys[:service_parameters] || []
-        # items += (service_parameters.select { |p| p[:in] =~ /path|query/ })
 
         items
       end

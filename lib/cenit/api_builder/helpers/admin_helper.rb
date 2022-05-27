@@ -266,13 +266,13 @@ module Cenit
             end
           end
 
+          parameters = params.permit(qs: {})
           path_pattern = /^#{path_tokens.join('/')}$/
 
           request.body.rewind
           @payload = request.body.read
           @path_params = {}.with_indifferent_access
-          @query_params = params[:qs] || {}.with_indifferent_access
-
+          @query_params = parameters[:qs] || {}.with_indifferent_access
           return nil unless match = path_pattern.match(s_req_path)
 
           path_params_names.each_with_index do |name, idx|

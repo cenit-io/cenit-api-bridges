@@ -12,8 +12,9 @@ module Cenit
 
         @auth = self.authorization || begin
           criteria = { namespace: namespace, name: 'default_authorization' }
-          self.connection.authorization = Setup::Authorization.where(criteria).first || create_default_authorization
-          self.connection.save!
+          auth = Setup::Authorization.where(criteria).first || create_default_authorization
+          connection.update(authorization: auth) unless connection.nil?
+          auth
         end
       end
 

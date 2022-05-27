@@ -46,12 +46,6 @@ module Cenit
         data = parse_request_data(params[:model], :create)
         @record = @dt.create_from_json!(data, { primary_field: %i[id], add_only: false })
 
-        if (params[:model].to_sym == :bs_apps)
-          data = parse_request_data(params[:model], :update)
-          fill_from_data(@record, data)
-          @record.save!
-        end
-
         respond_with_record(@record, params[:model])
       rescue StandardError => e
         respond_with_exception(e)

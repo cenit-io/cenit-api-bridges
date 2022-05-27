@@ -96,12 +96,13 @@ module Cenit
               check_attr_validity(:username, scope_name, scope, true, String)
               check_attr_validity(:password, scope_name, scope, true, String)
             end
+
+            data[:id] = @record.id
           end
 
           check_attr_validity(:listening_path, nil, data, true, String)
           check_attr_validity(:target_api_base_url, nil, data, false, String)
 
-          data[:id] = @record.id
           data
         end
       end

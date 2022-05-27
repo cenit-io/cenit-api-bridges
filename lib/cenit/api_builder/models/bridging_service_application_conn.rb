@@ -42,7 +42,15 @@ module Cenit
         data[:headers] = []
         data[:parameters] = []
         data[:template_parameters] = []
-        data[:authorization] = { id: auth.id, _reference: true } unless auth.nil?
+        unless auth.nil?
+          data[:authorization] = { id: auth.id, _reference: true }
+          type = auth._type.split('::').last.underscore.to_sym
+
+          if (type == :oauth2_authorization)
+            data[:authorization_handler] = true
+            data[:headers] << {key: 'Authorization', value: 'Bearer {{access_token}}'}
+          end
+        end
 
         spec.components.security_schemes.each do |_, scheme|
           next unless scheme.type == 'apiKey'
