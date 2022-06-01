@@ -111,6 +111,13 @@ module Cenit
           respond_with_format(response)
         end
 
+        def parse_sort_params
+          parameters = params.permit(sort: {})
+          sort ||= parameters[:sort] || { created_at: 'DESC' }
+          sort = { sort => 'DESC' } if sort.is_a?(String)
+          sort.to_h.deep_symbolize_keys
+        end
+
         def respond_with_records(dt, type = nil)
           type ||= dt.name.underscore
 
@@ -118,7 +125,7 @@ module Cenit
           criteria = respond_to?(parse_method) ? send(parse_method) : {}
           offset = params[:offset].to_i
           limit = (params[:limit] || 10).to_i
-          sort = params[:sort] || { created_at: 'DESC' }
+          sort = parse_sort_params
           total = dt.where(criteria).count
 
           response = begin

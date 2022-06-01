@@ -49,6 +49,8 @@ module Cenit
         end
 
         def parse_from_params_to_selection_local_services_criteria
+          params[:sort] ||= { active: 'DESC' }
+
           exp_term = { '$regex' => ".*#{params[:term]}.*", '$options' => 'i' }
 
           terms_conditions = [
