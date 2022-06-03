@@ -33,7 +33,7 @@ module Cenit
               url: request.url.gsub(/admin.*$/, record.full_path),
               parameters: record.parameters,
               headers: record.headers,
-            # body: record.listen.method =~ /put|post/ && record.target ? JSON.parse(record.target.code) : nil
+              body: record.target ? record.target.metadata.deep_symbolize_keys[:body] : nil
             )
           end
 
@@ -103,6 +103,21 @@ module Cenit
           data
         end
 
+        def parser_bridging_service_body(content_type)
+          return @payload if @payload.is_a?(String)
+
+          case content_type.downcase
+          when 'application/json'
+            @payload.to_json
+          when 'application/xml', 'text/xml'
+            @payload.to_xml
+          when 'application/x-www-form-urlencoded'
+            @payload.www_form_encode
+          end
+
+          @payload.www_form_encode
+        end
+
         def process_bridging_service
           method = request.method.downcase
           req_a_path = URI.decode(params[:app_listening_path])
@@ -119,9 +134,16 @@ module Cenit
 
           webhook = service.target
           conn = app.connection
-          tps = {}.merge(@query_params).merge(@path_params)
+          options = { template_parameters: {} }
+          options[:template_parameters].merge!(@query_params).merge!(@path_params)
 
-          response, code = webhook.with(conn).submit!(template_parameters: tps) do |response|
+          if webhook.method =~ /^(post|put|push)$/ && @payload.present?
+            h_content_type = webhook.headers.to_a.detect { |h| h.key == 'Content-Type' }
+            options[:contentType] = h_content_type&.value || 'application/json'
+            options[:body] = parser_bridging_service_body(options[:contentType])
+          end
+
+          response, code = webhook.with(conn).submit(options) do |response|
             res = JSON.parse(response.body, symbolize_names: true) rescue response.body
             [res, response.code]
           end

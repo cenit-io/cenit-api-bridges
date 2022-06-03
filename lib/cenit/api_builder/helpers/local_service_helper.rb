@@ -108,6 +108,7 @@ module Cenit
           @dt = service.target
           params.merge!(@path_params)
           params.merge!(@query_params)
+          params[:data] = @payload
           params[:model] = 'ls_request'
 
           if @path_params.has_key?(:id)

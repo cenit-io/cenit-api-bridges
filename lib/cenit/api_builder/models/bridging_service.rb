@@ -41,7 +41,7 @@ module Cenit
         authorization = access_token ? "#{access_token.token_type} #{access_token.token}" : 'Bearer ***************'
         items = [{ name: 'Authorization', description: 'Bearer token of OAuth 2.0', value: authorization }]
 
-        if listen.method =~ /post|put/
+        if listen.method =~ /^(post|put|push)$/
           items << { name: 'Content-Type', description: 'Request content type', value: 'application/json' }
         end
 
@@ -71,19 +71,27 @@ module Cenit
         meta_data = metadata.deep_symbolize_keys
         path = meta_data[:path]
         method = meta_data[:method]
-        service_spec = application.spec.paths[path][method]
+        path_spec = application.spec.paths[path]
+        service_spec = path_spec[method]
 
-        headers = parse_webhook_headers(application.spec.paths[path])
+        headers = parse_webhook_headers(path_spec)
         headers.concat(parse_webhook_headers(service_spec))
 
-        parameters = parse_webhook_parameters(application.spec.paths[path])
+        if content_type = parse_webhook_content_type(service_spec)
+          content_type_header = headers.detect { |h| h[:key] == 'Content-Type' }
+          headers << { key: 'Content-Type', value: content_type } if content_type_header.nil?
+        end
+
+        parameters = parse_webhook_parameters(path_spec)
         parameters.concat(parse_webhook_parameters(service_spec))
 
-        template_parameters = parse_webhook_template_parameters(application.spec.paths[path])
+        template_parameters = parse_webhook_template_parameters(path_spec)
         template_parameters.concat(parse_webhook_template_parameters(service_spec))
 
-        service_parameters = parse_service_parameters(application.spec.paths[path])
+        service_parameters = parse_service_parameters(path_spec)
         service_parameters.concat(parse_service_parameters(service_spec))
+
+        service_body = parse_service_body(service_spec)
 
         wh_path = path.gsub(/\{([^\}]+)\}/, '{{\1}}')
         wh_data = {
@@ -95,7 +103,7 @@ module Cenit
           headers: headers,
           parameters: parameters,
           template_parameters: template_parameters,
-          metadata: meta_data.merge(service_parameters: service_parameters)
+          metadata: meta_data.merge(parameters: service_parameters, body: service_body)
         }
 
         self.target = Setup::PlainWebhook.create_from_json!(wh_data)
@@ -130,6 +138,28 @@ module Cenit
             description: p.description
           }
         end
+      end
+
+      def parse_webhook_content_type(service_spec)
+        return nil if service_spec.request_body.nil?
+        service_spec.request_body.content&.keys.first
+      end
+
+      def parse_service_properties(schema)
+        result = schema.properties.to_h
+        result.each do |k, v|
+          if v.is_a?(Openapi3Parser::Node::Object)
+            result[k] = { name: k, type: v.type, description: v.description, required: v.required == true }
+            result[k][:default] = v.default unless v.default.nil?
+            result[k][:properties] = parse_service_properties(v) if v.properties.present?
+          end
+        end
+        result
+      end
+
+      def parse_service_body(service_spec)
+        return nil if service_spec.request_body.nil?
+        { properties: parse_service_properties(service_spec.request_body.content.values.first.schema) }
       end
 
       def parse_service_parameters(service_spec)

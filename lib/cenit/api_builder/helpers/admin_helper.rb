@@ -277,7 +277,7 @@ module Cenit
           path_pattern = /^#{path_tokens.join('/')}$/
 
           request.body.rewind
-          @payload = request.body.read
+          @payload = JSON.parse(request.body.read) rescue @payload
           @path_params = {}.with_indifferent_access
           @query_params = parameters[:qs] || {}.with_indifferent_access
           return nil unless match = path_pattern.match(s_req_path)
